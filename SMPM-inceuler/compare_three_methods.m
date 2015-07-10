@@ -62,7 +62,7 @@
 
    % Set some time-stepping parameters.
    t_final = 0.05;
-   min_dt  = 1e-3;
+   min_dt  = 0.5e-3;
    min_dx  = z(2) - z(1);  % XXX: Only works for cartesian grids.
    c       = sqrt(max( ux0.^2 + uz0.^2 ));
    dt      = min( min_dx / c / 10, min_dt );

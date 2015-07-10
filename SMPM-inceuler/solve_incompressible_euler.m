@@ -141,8 +141,8 @@ function [ux uz rho] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, rh
 
             % Update the current velocities.
             Gp = G*p;
-            ux(:,ii) = ux(:,ii) - dt * Gp(1:r);
-            uz(:,ii) = uz(:,ii) - dt * Gp(r+1:end);
+            ux(:,ii) = ux(:,ii) + dt * Gp(1:r);
+            uz(:,ii) = uz(:,ii) + dt * Gp(r+1:end);
 
          case 'postproject'
 
