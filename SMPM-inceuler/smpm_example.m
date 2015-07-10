@@ -8,8 +8,8 @@
 
    % Set some constants / inputs.
    n    = 6;
-   mx   = 5;
-   mz   = 5;
+   mx   = 10;
+   mz   = 10;
    Lx   = 1.0;
    Lz   = 1.0;
    rho0 = 1000.0;
@@ -66,8 +66,8 @@
    rhoi = rho0 * exp( -( ( x - x0).^2 + (z - z0).^2 ) / (a/2).^2 );
 
    % Set some time-stepping parameters.
-   t_final = 0.2;
-   min_dt  = 2e-4;
+   t_final = 0.05;
+   min_dt  = 1e-4;
    min_dx  = z(2) - z(1);  % XXX: Only works for cartesian grids.
    c       = sqrt(max( ux0.^2 + uz0.^2 ));
    dt      = min( min_dx / c / 10, min_dt );

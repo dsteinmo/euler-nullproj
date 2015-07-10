@@ -128,7 +128,6 @@ function [ux uz rho] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, rh
             unew = N * lambda;
             ux(:,ii) = unew(1:r);
             uz(:,ii) = unew(r+1:end);
-            fprintf(['divu:', num2str( norm(D*[ux(:,ii);uz(:,ii)])), '\n']);
 
          case 'poisson'
 
