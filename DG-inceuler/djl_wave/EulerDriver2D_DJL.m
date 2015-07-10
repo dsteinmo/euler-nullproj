@@ -4,6 +4,7 @@ close all;
 cd ../../
 setNUDGpaths;
 cd DG-inceuler/djl_wave
+addpath('../../bandLimFourierInterp/')
 
 % Driver script for solving the 2D Euler equations
 Globals2D;
@@ -16,7 +17,8 @@ vmapP = 0*vmapP;
 % Order of polynomials used for approximation 
 N = 4; 
 
-DO_INTERP = false;
+%Do we want to interpolate from Fourier grid to DG grid, or use a cached file?
+DO_INTERP = true;
 BCSolution = @NHSWMBC2D;
 
 
