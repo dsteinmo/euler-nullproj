@@ -1,5 +1,5 @@
-function [ux uz rho] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, rhoi, max_dt, t_final, ptype, tau )
-% [ux uz rho] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, rho0, dt, t_final, ptype, tau );
+function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, rhoi, max_dt, t_final, ptype, tau )
+% [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, rho0, dt, t_final, ptype, tau );
 %
 %  Solves the incompressible Euler equations with a spectral multidomain
 %  penalty method model on a cartesian (plaid) grid with an active density
@@ -19,6 +19,7 @@ function [ux uz rho] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, rh
 %  Returns 3 arguments:
 %
 %     ux, uz, rho    - solution of the incompressible Euler equations.
+%     t              - time.
 %
 %  7 July 2015
 %  Sumedh Joshi
@@ -185,7 +186,7 @@ function [ux uz rho] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, rh
       fprintf( ['   New Time-Step: ', num2str(dt) '\n'] );
 
       if dt < 1.0e-14
-         fprintf( 'Simulation has gone unstable. Exiting' );
+         fprintf( 'Simulation has gone unstable. Exiting.\n' );
          return;
       end
 
