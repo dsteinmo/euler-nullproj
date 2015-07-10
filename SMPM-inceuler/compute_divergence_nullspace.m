@@ -29,8 +29,9 @@ function [ N ] = compute_divergence_nullspace( D, n, mx, mz );
 
    % Loop over elements, computing then null space basis within each.
    r = size( D, 2 );
-   %N = zeros( r, mx * mz * ( n^2 + 1) ); % Need to prove this is the dimension of N.
-   N = [];
+   N = zeros( r, mx * mz * ( n^2 + 1) ); % Need to prove this is the dimension of N.
+   %N = [];
+   count = 1;
    for ii = 1:mx*mz
 
          iistart = n * n * ( ii - 1 ) + 1;
@@ -46,7 +47,8 @@ function [ N ] = compute_divergence_nullspace( D, n, mx, mz );
          iistart = iistart + n * n * mx * mz;
          iiend   = iiend   + n * n * mx * mz;
          iiN( iistart:iiend, : ) = iiNloc( end/2 + 1:end, : );
-         N = [N iiN];
+         N(:, count:count+size(iiN,2) - 1 ) = iiN; % This seems wonky but its faster.
+         count = count + size(iiN,2);
    end
 
    % Permute the null space basis into z-first indexing.
