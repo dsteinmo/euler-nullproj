@@ -9,8 +9,9 @@
 clear;
 close all;
 
-addpath "../"
+cd ../
 setNUDGpaths;
+cd DG-inceuler
 
 % Driver script for solving the 2D Euler equations
 Globals2D;

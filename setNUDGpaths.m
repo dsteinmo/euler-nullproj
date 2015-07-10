@@ -1,17 +1,17 @@
-addpath /home/dsteinmo/work/NUDG/Codes1D
-addpath /home/dsteinmo/work/NUDG/Codes2D
-addpath /home/dsteinmo/work/NUDG/Codes2Dquad
-addpath /home/dsteinmo/work/NUDG/Codes3D
-addpath /home/dsteinmo/work/NUDG/ServiceRoutines
-addpath /home/dsteinmo/work/NUDG/CFD1D
-addpath /home/dsteinmo/work/NUDG/CFD2D
-addpath /home/dsteinmo/work/NUDG/Grid/
-addpath /home/dsteinmo/work/NUDG/Grid/CFD
-addpath /home/dsteinmo/work/NUDG/Grid/3D
-addpath /home/dsteinmo/work/NUDG/Grid/CNS2D
-addpath /home/dsteinmo/work/NUDG/Grid/Euler2D
-addpath /home/dsteinmo/work/NUDG/Grid/Maxwell2D
-addpath /home/dsteinmo/work/NUDG/Grid/Other
-addpath /home/dsteinmo/work/
-addpath '/home/dsteinmo/work/Mesh2d v24'
-addpath /home/dsteinmo/work/gitrepos/incEuler/localdivproj
+abspath = pwd;
+addpath(strcat(abspath,'/NUDG/Codes1D'))
+addpath(strcat(abspath,'/NUDG/Codes2D'))
+addpath(strcat(abspath,'/NUDG/Codes2Dquad'))
+addpath(strcat(abspath,'/NUDG/Codes3D'))
+addpath(strcat(abspath,'/NUDG/ServiceRoutines'))
+addpath(strcat(abspath,'/NUDG/CFD1D'))
+addpath(strcat(abspath,'/NUDG/CFD2D'))
+addpath(strcat(abspath,'/NUDG/Grid/'))
+addpath(strcat(abspath,'/NUDG/Grid/CFD'))
+addpath(strcat(abspath,'/NUDG/Grid/3D'))
+addpath(strcat(abspath,'/NUDG/Grid/CNS2D'))
+addpath(strcat(abspath,'/NUDG/Grid/Euler2D'))
+addpath(strcat(abspath,'/NUDG/Grid/Maxwell2D'))
+addpath(strcat(abspath,'/NUDG/Grid/Other'))
+addpath(strcat(abspath,'/DG-inceuler'))
+addpath(strcat(abspath,'/DG-inceuler/localdivproj'))
