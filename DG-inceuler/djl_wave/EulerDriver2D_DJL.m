@@ -18,7 +18,7 @@ vmapP = 0*vmapP;
 N = 4; 
 
 %Do we want to interpolate from Fourier grid to DG grid, or use a cached file?
-DO_INTERP = true;
+DO_INTERP = false;
 BCSolution = @NHSWMBC2D;
 
 
