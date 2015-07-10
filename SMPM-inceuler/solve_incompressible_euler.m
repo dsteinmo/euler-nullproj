@@ -142,8 +142,8 @@ function [ux uz rho] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, rh
 
             % Update the current velocities.
             Gp = G*p;
-            iiux = iiux - dt * Gp(1:r);
-            iiuz = iiuz - dt * Gp(r+1:end);
+            iiux = iiux + dt * Gp(1:r);
+            iiuz = iiuz + dt * Gp(r+1:end);
 
          case 'postproject'
 
@@ -156,8 +156,8 @@ function [ux uz rho] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, rh
 
             % Update the current velocities.
             Gp = G * p;
-            iiux= iiux - dt * Gp(1:r);
-            iiuz = iiuz - dt * Gp(r+1:end);
+            iiux= iiux + dt * Gp(1:r);
+            iiuz = iiuz + dt * Gp(r+1:end);
 
             % Project onto the divergence-free basis.
             iiu = [iiux; iiuz];
