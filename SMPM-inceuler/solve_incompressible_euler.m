@@ -134,7 +134,7 @@ function [ux uz rho] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, rh
          case 'poisson'
 
             % Set up a right-hand-side.
-            b = -D * [ iiux; iiuz ];
+            b = -D * [ iiux; iiuz ] / dt;
             b = b - u0 * u0' * b;
 
             % Solve the Poisson equation.
@@ -148,7 +148,7 @@ function [ux uz rho] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, rh
          case 'postproject'
 
             % Set up a right-hand-side.
-            b = -D * [ iiux; iiuz ];
+            b = -D * [ iiux; iiuz ] / dt;
             b = b - u0 * u0' * b;
 
             % Solve the Poisson equation.
@@ -156,7 +156,7 @@ function [ux uz rho] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, rh
 
             % Update the current velocities.
             Gp = G * p;
-            iiux= iiux + dt * Gp(1:r);
+            iiux = iiux + dt * Gp(1:r);
             iiuz = iiuz + dt * Gp(r+1:end);
 
             % Project onto the divergence-free basis.
