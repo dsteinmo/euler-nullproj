@@ -7,7 +7,7 @@
 % Cornell University.
 
    % Set some constants / inputs.
-   n    = 5;
+   n    = 10;
    mx   = 10;
    mz   = 10;
    Lx   = 1.0;
@@ -24,11 +24,13 @@
 
    % Build the operator matrices.
    r = n * n * mx * mz;
+   fprintf(['Assembling operator matrices.\n']);
    [Dx Dz E0 E1 B0 B1] = smpm_assemble_2D_cartesian( n, mx, mz, Lx, Lz );
 
    % Get a penalty coefficient.
 
    % Build a cartesian grid.
+   fprintf(['Building the grid.\n']);
    [x, z] = smpm_build_cartesian_mesh( n, mx, mz, [0 1], [0 1] );
 
    % Build the divergence and gradient operators.
