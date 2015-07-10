@@ -7,9 +7,9 @@
 % Cornell University.
 
    % Set some constants / inputs.
-   n    = 10;
-   mx   = 10;
-   mz   = 10;
+   n    = 5;
+   mx   = 5;
+   mz   = 5;
    Lx   = 1.0;
    Lz   = 1.0;
    rho0 = 1000.0;

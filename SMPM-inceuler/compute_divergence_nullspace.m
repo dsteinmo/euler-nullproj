@@ -34,7 +34,6 @@ function [ N ] = compute_divergence_nullspace( D, n, mx, mz );
    count = 1;
    for ii = 1:mx*mz
 
-         ii
          iistart = n * n * ( ii - 1 ) + 1;
          iiend   = n * n * ( ii - 1 ) + n * n;
 
