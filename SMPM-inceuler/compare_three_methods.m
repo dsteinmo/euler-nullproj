@@ -15,13 +15,6 @@
    rho0 = 1000.0;
    g    = 9.8;
 
-   % Set the type of pressure projection.
-%   ptype = 'nullspace-direct';
-%   ptype = 'nullspace-iterative';
-%  ptype = 'poisson';
-   ptype = 'postproject';
-%   ptype = 'none';
-
    % Build the operator matrices.
    r = n * n * mx * mz;
    fprintf(['Assembling operator matrices.\n']);
@@ -69,11 +62,16 @@
 
    % Set some time-stepping parameters.
    t_final = 0.05;
-   min_dt  = 1e-3;
+   min_dt  = 0.5e-3;
    min_dx  = z(2) - z(1);  % XXX: Only works for cartesian grids.
    c       = sqrt(max( ux0.^2 + uz0.^2 ));
    dt      = min( min_dx / c / 10, min_dt );
    t       = linspace( 0, t_final, ceil( t_final / dt ) );
 
-   % Solve the incompressible Euler equations.
-   [ux uz rho] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, rhoi, dt, t_final, ptype, tau );
+   % Solve the incompressible Euler equations three times, each with a different projection method.
+   ptypes = { 'poisson', 'postproject', 'nullspace-iterative' };
+   fname  = { 'raytay_poisson', 'raytay_postproject', 'raytay_nullspace' };
+   for ii = 1:length(ptypes)
+      [ux uz rho] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, rhoi, dt, t_final, ptypes{ii}, tau );
+      save( fname{ii} );
+   end
