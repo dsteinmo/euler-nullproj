@@ -7,9 +7,9 @@
 % Cornell University.
 
    % Set some constants / inputs.
-   n    = 5;
-   mx   = 5;
-   mz   = 5;
+   n    = 10;
+   mx   = 10;
+   mz   = 10;
    Lx   = 1.0;
    Lz   = 1.0;
    rho0 = 1000.0;
@@ -48,7 +48,7 @@
 
    % Assemble the null space of the divergence operator.
    %N = null( full( D ) ); % This is slow and dumb.
-   N = compute_divergence_nullspace( D, n, mx, mz );
+   %N = compute_divergence_nullspace( D, n, mx, mz );
 
    % Build the vector C0 continuity operator.
    E_C0 = [ (E0 + 0*E1 + B0) zeros(r,r); zeros(r,r) (E0 + 0*E1 + B0) ];
@@ -68,7 +68,7 @@
    rhoi = rho0 * exp( -( ( x - x0).^2 + (z - z0).^2 ) / (a/2).^2 );
 
    % Set some time-stepping parameters.
-   t_final = 0.25;
+   t_final = 0.05;
    min_dt  = 1e-3;
    min_dx  = z(2) - z(1);  % XXX: Only works for cartesian grids.
    c       = sqrt(max( ux0.^2 + uz0.^2 ));
