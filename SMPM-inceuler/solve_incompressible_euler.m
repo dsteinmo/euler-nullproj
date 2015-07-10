@@ -1,4 +1,4 @@
-function [ux uz rho] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, rhoi, min_dt, t_final, ptype, tau )
+function [ux uz rho] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, rhoi, max_dt, t_final, ptype, tau )
 % [ux uz rho] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, rho0, dt, t_final, ptype, tau );
 %
 %  Solves the incompressible Euler equations with a spectral multidomain
@@ -25,10 +25,11 @@ function [ux uz rho] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, rh
 %  Cornell University
 
    % Set some constants / inputs.
-   Lx   = max(x) - min(x);
-   Lz   = max(z) - min(z);
-   rho0 = 1000.0;
-   g    = 9.8;
+   Lx      = max(x) - min(x);
+   Lz      = max(z) - min(z);
+   rho0    = 1000.0;
+   g       = 9.8;
+   CFL_MAX = 0.25;
 
    % Build the operator matrices.
    r = n * n * mx * mz;
@@ -81,59 +82,59 @@ function [ux uz rho] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, rh
    % Set some time-stepping parameters.
    min_dx  = z(2) - z(1);  % XXX: Only works for cartesian grids.
    c       = sqrt(max( ux0.^2 + uz0.^2 ));
-   dt      = min( min_dx / c / 10, min_dt );
-   t       = linspace( 0, t_final, ceil( t_final / dt ) );
+   dt      = min( min_dx / c / 10, max_dt );
+   t(1)    = 0.0;
 
    % Allocate arrays to store the field variables.
-   ux   = zeros( r, length(t) );
-   uz   = zeros( r, length(t) );
-   rho  = zeros( r, length(t) );
+   ux   = zeros( r, 1 );
+   uz   = zeros( r, 1 );
+   rho  = zeros( r, 1 );
 
    %
    % Begin time-stepping.
    ux(  :, 1 ) = ux0;
    uz(  :, 1 ) = uz0;
    rho( :, 1 ) = rhoi;
-   for ii = 2:length(t)
+   while t(end) < t_final
 
       % Apply the non-linear advection operator.
-      Aux = apply_smpm_advection( ux(:,ii-1), Dx, Dz, ux(:,ii-1), uz(:,ii-1), Lx, Lz, n, mx, mz );
-      Auz = apply_smpm_advection( uz(:,ii-1), Dx, Dz, ux(:,ii-1), uz(:,ii-1), Lx, Lz, n, mx, mz );
+      Aux = apply_smpm_advection( ux(:,end), Dx, Dz, ux(:,end), uz(:,end), Lx, Lz, n, mx, mz );
+      Auz = apply_smpm_advection( uz(:,end), Dx, Dz, ux(:,end), uz(:,end), Lx, Lz, n, mx, mz );
 
       % Apply the advective operator to the density.
-      Arho = apply_smpm_advection( rho(:,ii-1), Dx, Dz, ux(:,ii-1), uz(:,ii-1), Lx, Lz, n, mx, mz );
+      Arho = apply_smpm_advection( rho(:,end), Dx, Dz, ux(:,end), uz(:,end), Lx, Lz, n, mx, mz );
 
       % Update the current velocity.
-      ux(:,ii) = ux(:,ii-1) + dt * Aux;
-      uz(:,ii) = uz(:,ii-1) + dt * Auz - dt * g * rho(:,ii-1) / rho0 ;
+      iiux = ux(:,end) + dt * Aux;
+      iiuz = uz(:,end) + dt * Auz - dt * g * rho(:,end) / rho0 ;
 
       % Update the current density.
-      rho(:,ii) = rho(:,ii-1) + dt * Arho;
+      iirho = rho(:,end) + dt * Arho;
 
       % Project onto the divergence-free basis.
       switch ptype
 
          case 'nullspace-direct'
 
-            [ ux(:,ii), uz(:,ii) ] = apply_nullspace_projection( ux(:,ii), uz(:,ii), N, U, S, V );
+            [ iiux, iiuz ] = apply_nullspace_projection( iiux, uz, N, U, S, V );
 
          case 'nullspace-iterative'
 
             % Set up a right-hand-side.
-            b = N' * [ ux(:,ii); uz(:,ii) ];
+            b = N' * [ iiux; iiuz ];
 
             % Solve with GMRES-Householder.
             [lambda err m] = compute_gmres_householder( T, b, b, 1e-9, r );
 
             % Construct the updated velocity.
             unew = N * lambda;
-            ux(:,ii) = unew(1:r);
-            uz(:,ii) = unew(r+1:end);
+            iiux = unew(1:r);
+            iiuz = unew(r+1:end);
 
          case 'poisson'
 
             % Set up a right-hand-side.
-            b = -D * [ ux(:,ii); uz(:,ii) ];
+            b = -D * [ iiux; iiuz ];
             b = b - u0 * u0' * b;
 
             % Solve the Poisson equation.
@@ -141,13 +142,13 @@ function [ux uz rho] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, rh
 
             % Update the current velocities.
             Gp = G*p;
-            ux(:,ii) = ux(:,ii) - dt * Gp(1:r);
-            uz(:,ii) = uz(:,ii) - dt * Gp(r+1:end);
+            iiux = iiux - dt * Gp(1:r);
+            iiuz = iiuz - dt * Gp(r+1:end);
 
          case 'postproject'
 
             % Set up a right-hand-side.
-            b = -D * [ ux(:,ii); uz(:,ii) ];
+            b = -D * [ iiux; iiuz ];
             b = b - u0 * u0' * b;
 
             % Solve the Poisson equation.
@@ -155,19 +156,33 @@ function [ux uz rho] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, rh
 
             % Update the current velocities.
             Gp = G * p;
-            ux(:,ii) = ux(:,ii) - dt * Gp(1:r);
-            uz(:,ii) = uz(:,ii) - dt * Gp(r+1:end);
+            iiux= iiux - dt * Gp(1:r);
+            iiuz = iiuz - dt * Gp(r+1:end);
 
             % Project onto the divergence-free basis.
-            iiu = [ux(:,ii); uz(:,ii)];
+            iiu = [iiux; iiuz];
             iiu = N * ( N' * iiu );
-            ux(:,ii) = iiu(1:r);
-            uz(:,ii) = iiu(r+1:end);
+            iiux = iiu(1:r);
+            iiuz = iiu(r+1:end);
       end
 
       % Print out a CFL number.
-      iiCFL = sqrt( max( ux(:,ii).^2 + uz(:,ii).^2 ) ) * dt / min_dx;
-      fprintf( [ 'Time step ' num2str( ii ) ', CFL number:', num2str( iiCFL ) '\n'] );
+      umax = sqrt( max( iiux.^2 + iiuz.^2 ) );
+      iiCFL = sqrt( max( iiux.^2 + iiuz.^2 ) ) * dt / min_dx;
+      fprintf( [ 'Time :' num2str(t(end)) ', CFL number:', num2str( iiCFL ) '\n'] );
+
+      % Append the current time-step data.
+      ux  = [ux iiux];
+      uz  = [uz iiuz];
+      rho = [rho iirho];
+
+      % Set a new time-step.
+      dt = CFL_MAX * min_dx / umax;
+      if ( dt > max_dt)
+         dt = max_dt;
+      end
+      t  = [ t; t(end) + dt ];
+      fprintf( ['   New Time-Step: ', num2str(dt) '\n'] );
 
    end
 

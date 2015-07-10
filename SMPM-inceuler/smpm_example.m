@@ -17,8 +17,8 @@
 
    % Set the type of pressure projection.
 %   ptype = 'nullspace-direct';
-   ptype = 'nullspace-iterative';
-%  ptype = 'poisson';
+%   ptype = 'nullspace-iterative';
+  ptype = 'poisson';
 %   ptype = 'postproject';
 %   ptype = 'none';
 
@@ -68,7 +68,7 @@
    rhoi = rho0 * exp( -( ( x - x0).^2 + (z - z0).^2 ) / (a/2).^2 );
 
    % Set some time-stepping parameters.
-   t_final = 0.25;
+   t_final = 0.05;
    min_dt  = 1e-3;
    min_dx  = z(2) - z(1);  % XXX: Only works for cartesian grids.
    c       = sqrt(max( ux0.^2 + uz0.^2 ));
