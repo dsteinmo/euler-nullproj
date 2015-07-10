@@ -1,5 +1,5 @@
-function [ D2x, D2z, E0, E1, B0, B1 ] = smpm_assemble_2D_cartesian( n, mx, mz, Lx, Lz )
-% [Dx, Dz, E0, E1, B0, B1] = smpm_assemble_2D_cartesian( n, mx, mz, Lx, Lz )
+function [ D2x, D2z, E0, E1x, E1z, B0, B1 ] = smpm_assemble_2D_cartesian( n, mx, mz, Lx, Lz )
+% [Dx, Dz, E0, E1x, E1z, B0, B1] = smpm_assemble_2D_cartesian( n, mx, mz, Lx, Lz )
 %
 %  Builds the domain decomposition of the spectral multidomain penalty method
 %  discretization of the Poisson equation on a uniform cartesian grid.
@@ -7,7 +7,7 @@ function [ D2x, D2z, E0, E1, B0, B1 ] = smpm_assemble_2D_cartesian( n, mx, mz, L
 %
 %  To assemble the SMPM matrix, compute:
 %
-%     SMPM = Dx * Dx + Dz * Dz + E;
+%     SMPM = Dx * Dx + Dz * Dz + tau * ( E0 + E1x + E1z + B1 );
 %
 %  Takes 5 arguments:
 %
@@ -23,9 +23,6 @@ function [ D2x, D2z, E0, E1, B0, B1 ] = smpm_assemble_2D_cartesian( n, mx, mz, L
 
 % Set the polynomial order in each element in each direction.
 p = n - 1;
-
-% Set the patching penalty factor.
-F = 1.0;
 
 % Compute the element-wise coordinates.
 
@@ -93,7 +90,7 @@ hz = Lz / mz;
    tau    = 1.0;
 
    % Assemble the matrix.
-   Ex = tau * F * (C0x + sparse( C1x * Dx )) + tau * sparse( B1x * Dx );
+   Ex = tau * (C0x + sparse( C1x * Dx )) + tau * sparse( B1x * Dx );
 
 % Build a 1D SMPM matrix in z.
 
@@ -132,7 +129,7 @@ hz = Lz / mz;
    tau    = 1.0;
 
    % Assemble the matrix.
-   Ez = tau * F * (C0z + sparse( C1z * Dz )) + tau * sparse( B1z * Dz );
+   Ez = tau * (C0z + sparse( C1z * Dz )) + tau * sparse( B1z * Dz );
 
 % Build the 2D non-divergent part of the operator.
 E    = kron( speye( mx * n ), ...
@@ -141,7 +138,8 @@ E    = kron( speye( mx * n ), ...
              speye( mz * n ) );
 
 E0   = kron( speye( mx * n ), sparse( C0z ) ) + kron( sparse( C0x ), speye( mz * n ) );
-E1   = kron( speye( mx * n ), sparse( C1z * Dz ) ) + kron( sparse( C1x * Dx ), speye( mz * n ) );
+E1x  = kron( sparse( C1x * Dx ), speye( mz * n ) );
+E1z  = kron( speye( mx * n ), sparse( C1z * Dz ) );
 B1   = kron( speye( mx * n ), sparse( B1z * Dz ) ) + kron( sparse( B1x * Dx ), speye( mz * n ) );
 B0   = kron( speye( mx * n ), sparse( abs(B1z) ) ) + kron( sparse( abs(B1x) ), speye( mz * n ) );
 
