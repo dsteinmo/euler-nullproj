@@ -159,7 +159,7 @@ if DO_INTERP==true
 
     %try band-limited interpolation
     disp('interpolating rho to DG grid...');
-    rhoprimeDG = bandLimFourierInterp2D(xxe,zze,tmp,x(:),y(:),1e10);
+    rhoprimeDG = bandLimFourierInterp2D(xxe,zze,tmp,x(:),y(:),1e8);
     rhoprimeDG = reshape(rhoprimeDG,Np,K);
 
     figure(12);clf;
@@ -190,7 +190,7 @@ if DO_INTERP==true
     %tmp = real(ifft2(myfilt.*fft2(tmp)));
 
     disp('interpolating eta to DG grid...');
-    etaDG = bandLimFourierInterp2D(xxe,zze,tmp,x(:),y(:),1e10);
+    etaDG = bandLimFourierInterp2D(xxe,zze,tmp,x(:),y(:),1e8);
     etaDG = reshape(etaDG,Np,K);
     %clear u;
     subplot(2,1,2);
