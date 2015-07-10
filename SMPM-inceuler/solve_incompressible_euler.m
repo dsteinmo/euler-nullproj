@@ -12,7 +12,7 @@ function [ux uz rho] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, rh
 %     ux0, uz0, rho0 - initial conditions, grid functions on x, z.
 %     dt, t_final    - maximum timestep, final time.
 %     ptype          - incompressibility enforcement method:
-%                      {'poisson','nullspace','postproject','none'}.
+%                      {'poisson','nullspace-direct','nullspace-iterative','postproject','none'}.
 %     tau            - either the regularization coefficient, or
 %                      the factor multiplying the penalty coefficient.
 %
@@ -66,10 +66,15 @@ function [ux uz rho] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, rh
    % Build the vector C0 continuity operator.
    E_C0 = [ (E0 + 0*E1 + B0) zeros(r,r); zeros(r,r) (E0 + 0*E1 + B0) ];
 
-   % Solve for a truncated SVD.
-   if strcmp( ptype, 'nullspace' )
+   % Solve for a truncated SVD if asked to do so.
+   if strcmp( ptype, 'nullspace-direct' )
       fprintf( 'Computing the SVD of normal equations.\n' );
       [U S V] = setup_nullspace_projection( tau, N, E_C0 );
+   end
+
+   % Set up the normal equations for an interative method if asked to do so.
+   if strcmp( ptype, 'nullspace-iterative' )
+      T = N'*N + ( E_C0 * N )' * ( E_C0 * N );
    end
 
    % Set some time-stepping parameters.
@@ -107,9 +112,23 @@ function [ux uz rho] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, rh
       % Project onto the divergence-free basis.
       switch ptype
 
-         case 'nullspace'
+         case 'nullspace-direct'
 
             [ ux(:,ii), uz(:,ii) ] = apply_nullspace_projection( ux(:,ii), uz(:,ii), N, U, S, V );
+
+         case 'nullspace-iterative'
+
+            % Set up a right-hand-side.
+            b = N' * [ ux(:,ii); uz(:,ii) ];
+
+            % Solve with GMRES-Householder.
+            [lambda err m] = compute_gmres_householder( T, b, b, 1e-9, r );
+
+            % Construct the updated velocity.
+            unew = N * lambda;
+            ux(:,ii) = unew(1:r);
+            uz(:,ii) = unew(r+1:end);
+            fprintf(['divu:', num2str( norm(D*[ux(:,ii);uz(:,ii)])), '\n']);
 
          case 'poisson'
 
