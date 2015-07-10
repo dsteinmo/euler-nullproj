@@ -132,6 +132,9 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
             iiux = unew(1:r);
             iiuz = unew(r+1:end);
 
+            % Display some statistics.
+            fprintf([ '   GMRES converged in ', num2str( m ) ' iterations.\n'] );
+
          case 'poisson'
 
             % Set up a right-hand-side.
