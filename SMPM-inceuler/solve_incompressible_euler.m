@@ -43,7 +43,7 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
       omega = 2.0 / ( n - 1 ) / n;
       kappa = omega;
       pen   = 1.0 / omega * ( 1.0 + ( 2 * kappa ) - ( 2 * sqrt( kappa^2 + kappa ) ) );
-      EL = tau * pen * (E0 + E1) + pen^2 * B1;
+      EL = tau * pen * (E0 + E1x + E1z) + pen^2 * B1;
       L = Dx * Dx + Dz * Dz + tau * EL;
       [u0, junk, junk] = svds( L, 1, 0 );
    end
