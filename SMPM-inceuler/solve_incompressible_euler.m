@@ -77,7 +77,7 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
    % Set up the normal equations for an interative method if asked to do so.
    if strcmp( ptype, 'nullspace-iterative' )
       fprintf( 'Assembling the normal equations.\n' );
-      T = N'*N + ( E_C0 * N )' * ( E_C0 * N );
+      T = N'*N + tau * ( E_C0 * N )' * ( E_C0 * N );
    end
 
    % Set some time-stepping parameters.
