@@ -38,13 +38,13 @@ for k1=1:K
   cols1 = cols1(1:len,1:width);
    
   entries = count + (1:length(rows1(:)));
-  count = count + (1:length(rows1(:)));
+  count = count + length(rows1(:));
   OP(entries(:), :)   = [rows1(:), cols1(:), nullDiv_u(:)];
   
   %keyboard;
 
   entries = count + (1:length(rows1(:)));
-  count = count + (1:length(rows1(:)));
+  count = count + length(rows1(:));
 
   OP(entries(:), :) = [rows1(:)+dof, cols1(:), nullDiv_v(:)];
 
