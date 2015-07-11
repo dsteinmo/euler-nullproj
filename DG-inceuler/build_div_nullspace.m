@@ -18,13 +18,12 @@ dof=Np*K
 count=0;
 for k1=1:K 
   if(~mod(k1,1000)) k1, end;
-  rows1 = ((k1-1)*Np+1:k1*Np)'*ones(1,Np); cols1 = rows1';
+  rows1 = ((k1-1)*2*Np+1:k1*2*Np)'*ones(1,2*Np); cols1 = rows1';
 
   % Build local operators  
   Dx = rx(1,k1)*Dr + sx(1,k1)*Ds;   Dy = ry(1,k1)*Dr + sy(1,k1)*Ds;
 
-  Div = [Dx zeros(Np,Np);
-       zeros(Np,Np) Dy];
+  Div = [Dx Dy];
 
   nullDiv = null(full(Div));
   %split up component-wise
@@ -33,19 +32,25 @@ for k1=1:K
 
   dims = size(nullDiv_u);
   width = dims(2);
+  len = dims(1);
 
-  rows1 = rows1(:,1:width);
-  cols1 = cols1(:,1:width);
+  rows1 = rows1(1:len,1:width);
+  cols1 = cols1(1:len,1:width);
    
   entries = count + (1:length(rows1(:)));
   count = count + (1:length(rows1(:)));
   OP(entries(:), :)   = [rows1(:), cols1(:), nullDiv_u(:)];
   
+  %keyboard;
+
   entries = count + (1:length(rows1(:)));
   count = count + (1:length(rows1(:)));
 
-  OP(entries(:), :) = [rows1(:)+dof, cols1(:)+dof, nullDiv_v(:)];
+  OP(entries(:), :) = [rows1(:)+dof, cols1(:), nullDiv_v(:)];
+
+  %keyboard;
+
 end  
 
-OP   =   OP(1:max(entries) ,:);  OP   = myspconvert(OP, 2*Np*K, 2*Np*K, 1e-15);
+OP   =   OP(1:max(entries) ,:);  OP   = myspconvert(OP, 2*Np*K, Np*K, 1e-15);
 return
