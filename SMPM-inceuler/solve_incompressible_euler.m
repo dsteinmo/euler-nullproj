@@ -12,7 +12,7 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
 %     ux0, uz0, rho0 - initial conditions, grid functions on x, z.
 %     dt, t_final    - maximum timestep, final time.
 %     ptype          - incompressibility enforcement method:
-%                      {'poisson','nullspace-direct','nullspace-iterative','postproject','none'}.
+%                      {'poisson','nullspace-direct','nullspace-iterative','postproject',postnull,'none'}.
 %     tau            - either the regularization coefficient, or
 %                      the factor multiplying the penalty coefficient.
 %
@@ -39,7 +39,7 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
    % Get a penalty coefficient.
 
    % Build the Poisson matrix and its null space.
-   if strcmp( ptype, 'poisson' ) || strcmp( ptype, 'postproject' )
+   if strcmp( ptype, 'poisson' ) || strcmp( ptype, 'postproject' ) || strcmp( ptype, 'postnull' )
       omega = 2.0 / ( n - 1 ) / n;
       kappa = omega;
       pen   = 1.0 / omega * ( 1.0 + ( 2 * kappa ) - ( 2 * sqrt( kappa^2 + kappa ) ) );
@@ -69,7 +69,7 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
    E_C0 = [ (E0 + E1x + B0) zeros(r,r); zeros(r,r) (E0 + E1z + B0) ];
 
    % Solve for a truncated SVD if asked to do so.
-   if strcmp( ptype, 'nullspace-direct' )
+   if strcmp( ptype, 'nullspace-direct' ) || strcmp( ptype, 'postnull' )
       fprintf( 'Computing the SVD of normal equations.\n' );
       [U S V] = setup_nullspace_projection( tau, N, E_C0 );
    end
@@ -117,7 +117,7 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
 
          case 'nullspace-direct'
 
-            [ iiux, iiuz ] = apply_nullspace_projection( iiux, uz, N, U, S, V );
+            [ iiux, iiuz ] = apply_nullspace_projection( iiux, iiuz, N, U, S, V );
 
          case 'nullspace-iterative'
 
@@ -168,10 +168,28 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
             iiu = N * ( N' * iiu );
             iiux = iiu(1:r);
             iiuz = iiu(r+1:end);
+
+         case 'postnull'
+
+            % Set up a right-hand-side.
+            b = -D * [ iiux; iiuz ] / dt;
+            b = b - u0 * u0' * b;
+
+            % Solve the Poisson equation.
+            p = L \ b;
+
+            % Update the current velocities.
+            Gp = G * p;
+            iiux = iiux + dt * Gp(1:r);
+            iiuz = iiuz + dt * Gp(r+1:end);
+
+            % Project onto the weakly continuous div-free basis.
+            [ iiux, iiuz ] = apply_nullspace_projection( iiux, iiuz, N, U, S, V );
+
       end
 
       % Print out a CFL number.
-      umax = sqrt( max( iiux.^2 + iiuz.^2 ) );
+      umax  = sqrt( max( iiux.^2 + iiuz.^2 ) );
       iiCFL = sqrt( max( iiux.^2 + iiuz.^2 ) ) * dt / min_dx;
       fprintf( [ 'Time :' num2str(t(end)) ', CFL number:', num2str( iiCFL ) '\n'] );
 

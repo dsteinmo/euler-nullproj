@@ -68,8 +68,8 @@
    dt      = min( min_dx / c / 10, min_dt );
 
    % Solve the incompressible Euler equations three times, each with a different projection method.
-   ptypes = { 'poisson', 'postproject', 'nullspace-iterative' };
-   fname  = { 'raytay_poisson', 'raytay_postproject', 'raytay_nullspace' };
+   ptypes = { 'poisson', 'postproject', 'nullspace-iterative', 'postnull' };
+   fname  = { 'raytay_poisson', 'raytay_postproject', 'raytay_nullspace', 'postnull' };
    for ii = 1:length(ptypes)
       [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, rhoi, dt, t_final, ptypes{ii}, tau );
       save( fname{ii} );
