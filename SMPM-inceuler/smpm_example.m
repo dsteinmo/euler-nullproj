@@ -25,7 +25,7 @@
    % Build the operator matrices.
    r = n * n * mx * mz;
    fprintf(['Assembling operator matrices.\n']);
-   [Dx Dz E0 E1 B0 B1] = smpm_assemble_2D_cartesian( n, mx, mz, Lx, Lz );
+   [Dx Dz E0 E1x E1z B0 B1] = smpm_assemble_2D_cartesian( n, mx, mz, Lx, Lz );
 
    % Get a penalty coefficient.
 
@@ -51,7 +51,7 @@
    %N = compute_divergence_nullspace( D, n, mx, mz );
 
    % Build the vector C0 continuity operator.
-   E_C0 = [ (E0 + 0*E1 + B0) zeros(r,r); zeros(r,r) (E0 + 0*E1 + B0) ];
+   E_C0 = [ (E0 + E1x + B0) zeros(r,r); zeros(r,r) (E0 + E1z + B0) ];
 
    % Set the regularization coefficient.
    tau = 1.0e4;

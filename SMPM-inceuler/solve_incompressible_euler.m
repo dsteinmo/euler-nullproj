@@ -34,7 +34,7 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
 
    % Build the operator matrices.
    r = n * n * mx * mz;
-   [Dx Dz E0 E1 B0 B1] = smpm_assemble_2D_cartesian( n, mx, mz, Lx, Lz );
+   [Dx Dz E0 E1x E1z B0 B1] = smpm_assemble_2D_cartesian( n, mx, mz, Lx, Lz );
 
    % Get a penalty coefficient.
 
@@ -43,7 +43,7 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
       omega = 2.0 / ( n - 1 ) / n;
       kappa = omega;
       pen   = 1.0 / omega * ( 1.0 + ( 2 * kappa ) - ( 2 * sqrt( kappa^2 + kappa ) ) );
-      EL = tau * pen * (E0 + E1) + pen^2 * B1;
+      EL = tau * pen * (E0 + E1x + E1z) + pen^2 * B1;
       L = Dx * Dx + Dz * Dz + tau * EL;
       [u0, junk, junk] = svds( L, 1, 0 );
    end
@@ -66,7 +66,7 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
    N = compute_divergence_nullspace( D, n, mx, mz );
 
    % Build the vector C0 continuity operator.
-   E_C0 = [ (E0 + 0*E1 + B0) zeros(r,r); zeros(r,r) (E0 + 0*E1 + B0) ];
+   E_C0 = [ (E0 + E1x + B0) zeros(r,r); zeros(r,r) (E0 + E1z + B0) ];
 
    % Solve for a truncated SVD if asked to do so.
    if strcmp( ptype, 'nullspace-direct' )
