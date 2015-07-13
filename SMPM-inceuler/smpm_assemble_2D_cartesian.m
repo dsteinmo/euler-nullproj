@@ -138,7 +138,6 @@ E    = kron( speye( mx * n ), ...
              speye( mz * n ) );
 
 % XXX: check the validity of the abs() calls in the B0 condition.
-
 E0   = kron( speye( mx * n ), sparse( C0z ) ) + kron( sparse( C0x ), speye( mz * n ) );
 E1x  = kron( sparse( C1x * Dx ), speye( mz * n ) ); %
 E1z  = kron( speye( mx * n ), sparse( C1z * Dz ) ); % XXX: c.f. comment below about swapping these.

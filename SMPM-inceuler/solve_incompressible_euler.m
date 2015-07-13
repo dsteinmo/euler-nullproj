@@ -66,7 +66,7 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
    N = compute_divergence_nullspace( D, n, mx, mz );
 
    % Build the vector C0 continuity operator.
-   E_C0 = [ (E0 + E1x + B0x) zeros(r,r); zeros(r,r) (E0 + E1z + B0z) ];
+   E_C0 = [ (E0 + E1x + E1z + B0x) zeros(r,r); zeros(r,r) (E0 + E1x + E1z + B0z) ];
 
    % Solve for a truncated SVD if asked to do so.
    if strcmp( ptype, 'nullspace-direct' ) || strcmp( ptype, 'postnull' )
@@ -185,6 +185,20 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
 
             % Project onto the weakly continuous div-free basis.
             [ iiux, iiuz ] = apply_nullspace_projection( iiux, iiuz, N, U, S, V );
+
+%            % Set up a right-hand-side.
+%            b = N' * [ iiux; iiuz ];
+%
+%            % Solve with GMRES-Householder.
+%            [lambda err m] = compute_gmres_householder( T, b, b, 1e-9, r );
+%
+%            % Construct the updated velocity.
+%            unew = N * lambda;
+%            iiux = unew(1:r);
+%            iiuz = unew(r+1:end);
+%
+%            % Display some statistics.
+%            fprintf([ '   GMRES converged in ', num2str( m ) ' iterations.\n'] );
 
       end
 

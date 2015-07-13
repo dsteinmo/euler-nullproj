@@ -1,6 +1,6 @@
 %
 % Drives the SMPM incompressible Euler code.  Sets up and solves a falling
-% density blob problem.
+% density blob problem that is something like a Rayleigh-Taylor instability.
 %
 % 7 July 2015.
 % Sumedh Joshi
