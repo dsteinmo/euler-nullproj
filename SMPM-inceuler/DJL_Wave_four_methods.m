@@ -78,14 +78,12 @@
    t_final = 0.75;
    min_dt  = 0.05;
    min_dx  = min( z(2) - z(1), x(n*mz + 1) - x(1) );  % XXX: Only works for cartesian grids.
-   c       = sqrt(max( ux0.^2 + uz0.^2 )) + c;
+   c       = sqrt(max( ux0.^2 + uz0.^2 )) + 0 * c;
    dt      = min( min_dx / c / 10, min_dt );
 
    % Solve the incompressible Euler equations three times, each with a different projection method.
-   %ptypes = { 'postnull', 'poisson', 'postproject', 'nullspace-direct' };
-   %fname  = { 'raytay_postnull', 'raytay_poisson', 'raytay_postproject', 'raytay_nullspace' };
-   ptypes = { 'poisson' };
-   fname  = { 'djl_poisson' };
+   ptypes = { 'poisson', 'postproject', 'nullspace-direct', 'postnull' };
+   fname  = { 'djl_poisson', 'djl_postproject', 'djl_nullspace', 'djl_postnull' };
    for ii = 1:length(ptypes)
       [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, rhoi, rhob, dt, t_final, ptypes{ii}, tau(ii) );
 
