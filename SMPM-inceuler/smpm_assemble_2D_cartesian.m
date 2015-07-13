@@ -147,6 +147,6 @@ B0z  = kron( speye( mx * n ), sparse( abs(B1z) ) ); % XXX: I think I need to swa
 
 % Build two-dimensional versions of the derivative operator.
 D2z = kron( eye( mx * n ), Dz );
-D2x = kron( Dx, eye( mx * n ) );
+D2x = kron( Dx, eye( mz * n ) );
 
 end
