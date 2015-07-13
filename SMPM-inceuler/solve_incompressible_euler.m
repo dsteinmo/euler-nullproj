@@ -38,7 +38,7 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
    [Dx Dz E0 E1x E1z B0x B0z B1] = smpm_assemble_2D_cartesian( n, mx, mz, Lx, Lz );
 
    % Do some argument handling.
-   if length( rhob ) = 1
+   if length( rhob ) == 1
       rhob = 0 * rhoi;
    end
 
@@ -113,11 +113,11 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
 
       % Apply the advective operator to the density.
       Arho = apply_smpm_advection( rho(:,end), Dx, Dz, ux(:,end), uz(:,end), Lx, Lz, n, mx, mz );
-      Arho = Arho - uz(:, end) * rhob_z;
+      Arho = Arho -  uz(:, end) .* rhob_z;
 
       % Update the current velocity.
       iiux = ux(:,end) + dt * Aux;
-      iiuz = uz(:,end) + dt * Auz - dt * g * rho(:,end) / ( rhob + rho0 ) ;
+      iiuz = uz(:,end) + dt * Auz - dt * g * rho(:,end) ./ ( rhob + rho0 ) ;
 
       % Update the current density.
       iirho = rho(:,end) + dt * Arho;

@@ -48,7 +48,7 @@
    % Interpolate the DJL data onto the element grid we just built.
    ux0  = interp2( xx, zz, u, x, z,   'spline', 0.0 );
    uz0  = interp2( xx, zz, w, x, z,   'spline', 0.0 );
-   rhoi = interp2( xx, zz, eta, x, z, 'spline', 0.0 );
+   rhoi = interp2( xx, zz, rho - repmat(rho(:,1), 1, size(rho,2)), x, z, 'spline', 0.0 );
    rhob = interp1( zz(:,1), rho(:,1), z, 'spline' );
 
       % Set the top and bottom of the domain.
@@ -75,10 +75,10 @@
    tau(4) = 1.0e4;
 
    % Set some time-stepping parameters.
-   t_final = 1.00;
+   t_final = 0.75;
    min_dt  = 0.05;
-   min_dx  = z(2) - z(1);  % XXX: Only works for cartesian grids.
-   c       = sqrt(max( ux0.^2 + uz0.^2 ));
+   min_dx  = min( z(2) - z(1), x(n*mz + 1) - x(1) );  % XXX: Only works for cartesian grids.
+   c       = sqrt(max( ux0.^2 + uz0.^2 )) + c;
    dt      = min( min_dx / c / 10, min_dt );
 
    % Solve the incompressible Euler equations three times, each with a different projection method.
@@ -87,6 +87,19 @@
    ptypes = { 'poisson' };
    fname  = { 'djl_poisson' };
    for ii = 1:length(ptypes)
-      [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, rhoi, dt, t_final, ptypes{ii}, tau(ii) );
-      save( fname{ii} );
+      [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, rhoi, rhob, dt, t_final, ptypes{ii}, tau(ii) );
+
+         % Reshape the outputs.
+         rho = reshape( rho, [ n * mz, n * mx, length(t) ] );
+         ux  = reshape( ux, [ n * mz, n * mx, length(t) ] );
+         uz  = reshape( uz, [ n * mz, n * mx, length(t) ] );
+
+         % Save data.
+         save( fname{ii} );
    end
+
+   % Reshape ancillary arrays.
+   rhob = reshape( rhob, n * mz, n * mx );
+   x    = reshape( x, n * mz, n * mx );
+   z    = reshape( z, n * mz, n * mx );
+
