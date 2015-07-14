@@ -1,6 +1,6 @@
 %
 % Drives the SMPM incompressible Euler code.  Sets up and solves a falling
-% density blob problem.
+% density blob problem that is something like a Rayleigh-Taylor instability.
 %
 % 7 July 2015.
 % Sumedh Joshi
@@ -74,6 +74,6 @@
    ptypes = { 'postnull', 'poisson', 'postproject', 'nullspace-direct' };
    fname  = { 'raytay_postnull', 'raytay_poisson', 'raytay_postproject', 'raytay_nullspace' };
    for ii = 1:length(ptypes)
-      [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, rhoi, dt, t_final, ptypes{ii}, tau(ii) );
+      [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, rhoi, 0.0, dt, t_final, ptypes{ii}, tau(ii) );
       save( fname{ii} );
    end
