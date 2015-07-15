@@ -55,5 +55,5 @@ Q(:,:,2) = u;
 Q(:,:,3) = v;
 Q(:,:,4) = 0*rho;
 
-FinalTime = 200;
-[Q] = Euler2Dpressure(Q, FinalTime, BCSolution,g); %pressure projection implementation
+FinalTime = 500; %200
+[Q] = Euler2Dextrap(Q, FinalTime, BCSolution,g); %pressure projection implementation
