@@ -61,7 +61,7 @@ Qnp1 = zeros(size(Qn));
 projectionMatrix = buildProjectionMatrixquad(N,r,s,V);
 rotData = buildCoordRotationData_quad;
 
-%Project initial velocity (NEW!) to ensure div-free.
+%Project initial velocity to ensure div-free.
 %u=Qn(:,:,2); v=Qn(:,:,3);
 %[u,v] = globalDivFreeProjection(u,v,projectionMatrix,rotData);
 %Qn(:,:,2)=u;
@@ -82,14 +82,14 @@ while (time(tstep)<FinalTime)
   
    %get advective RHS's
    rhsQn = EulerRHS2D(Qn,time,BC,g);  
-  
-   if FILTER_TRACER_RHS == true
-       rhsQn(:,:,1) = Filt*rhsQn(:,:,1);
-   end
    
    %advective step (predictor)
    Qnp1_estimate = Qn + dt*rhsQn - dt*gradp_nmh;
 
+   %filter velocity:
+   for n=2:3
+       Qnp1_estimate(:,:,n) = Filt*Qnp1_estimate(:,:,n);
+   end
    
    %Form estimate at n+1/2 step.
    Qnph = 0.5*(Qnp1_estimate + Qn);
@@ -99,24 +99,28 @@ while (time(tstep)<FinalTime)
 
    %extrapolate to get corrected estimate for grad p at n+1/2 step.
    gradp_nph = rhsQnph - rhsQn + gradp_nmh;
-
+   
    %advective step (corrector)
-   Qnp1 = Qn + dt*rhsQnph - dt*gradp_nph;
-
-
-   %filter velocity fields after advective step (a must!)
+   Qnp1_estimate = Qn + dt*rhsQnph - dt*gradp_nph;
+   
+   %filter velocity:
    for n=2:3
-       Qnp1(:,:,n) = Filt*Qnp1(:,:,n);
+       Qnp1_estimate(:,:,n) = Filt*Qnp1_estimate(:,:,n);
    end
    
    %get predicted velocity
-   ustar = Qnp1(:,:,2); vstar = Qnp1(:,:,3); %for reg projection
+   ustar = Qnp1_estimate(:,:,2); vstar = Qnp1_estimate(:,:,3); %for reg projection
 
+   %do pressure projection.
    RHS = [ustar(:); vstar(:)];
    result = pressproj_hnd(RHS,dt,Pll,Puu,Ppp,Pqq);
    u = reshape(result(1:end/3),Np,K);
    v = reshape(result(end/3+1:2*end/3),Np,K);
    p = reshape(result(2*end/3+1:end),Np,K);
+   
+   Qnp1(:,:,1) = Qnp1_estimate(:,:,1);   
+   Qnp1(:,:,2) = u;  % use poisson-updated velocities
+   Qnp1(:,:,3) = v;
 
    enerpre = 0.5*(u.^2 + v.^2);
 
@@ -131,36 +135,32 @@ while (time(tstep)<FinalTime)
    % Construct the updated velocity.
    unew = Nd * lambda;
 
-   %DEREK: remove comments before pushing. - with this in, it died at t=145. without this, dies at t=11. without this and filtering: t=200 or more?
-   u = reshape(unew(1:end/2),Np,K);
-   v = reshape(unew(end/2+1:end),Np,K);
+   %Comment in or out depending on whether you want to use null-space projection.
+   %u = reshape(unew(1:end/2),Np,K);
+   %v = reshape(unew(end/2+1:end),Np,K);
 
 
    %u = Filt*u;
    %v = Filt*v;
    enerpost = 0.5*(u.^2 + v.^2);
 
-   Qnp1(:,:,2) = u;
-   Qnp1(:,:,3) = v; 
-
-   gradp_nph = (1/dt)*(Qnp1 - Qn);
+   gradp_nph = (1/dt)*(Qnp1_estimate - Qnp1);
    gradp_nph(:,:,1) = zeros(Np,K);
    px = gradp_nph(:,:,2);
    py = gradp_nph(:,:,3);
 
+   % this "pack" cannot go above the pressure gradient update.
+   Qnp1(:,:,2) = u;
+   Qnp1(:,:,3) = v; 
+   
    %compute divergence (for diagnostic).
    divu = Div2D(u,v);
-
-   %put corrected velocities back into 'packed' form.
-   Qnp1(:,:,2)=u;
-   Qnp1(:,:,3)=v;
    
    % Increment time and compute new timestep
    tstep = tstep+1;
    time(tstep)=time(tstep-1)+dt;
   
   
-  divu = Div2D(u,v);
   maxdivseries(tstep)=max(abs(divu(:)));
   divnormseries(tstep) = sqrt(dgintquad(divu.^2,V,J));
   
@@ -206,7 +206,7 @@ while (time(tstep)<FinalTime)
     drawnow;
     %bn
     
-    save(sprintf('out%07d.mat',tstep),'x','y','Np','K','N','Qnp1','time','tstep','maxdivseries','divu','divnormseries');
+    %save(sprintf('out%07d.mat',tstep),'x','y','Np','K','N','Qnp1','time','tstep','maxdivseries','divu','divnormseries');
     disp(['outputting at t=' num2str(time(tstep))]);
     
     
