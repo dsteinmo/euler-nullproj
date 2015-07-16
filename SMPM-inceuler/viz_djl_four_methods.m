@@ -12,7 +12,7 @@
    win = [ 1, 4 ];
 
    % Set the time you want to extract.
-   tplot = 0.5;
+   tplot = 1.0;
 
    % Figure 1: quiver plot of the final velocity.
    figure;
@@ -106,6 +106,50 @@
    end
    set( gcf,'pos',[2     5   948   690]);
    print_graphics( gcf, 'compare_djl_density', 1, 0, 0, 0 );
+
+   % Figure 5b: contour plot of the final u-velocity.
+   figure;
+   for iiviz = 1:length(method)
+
+      [ junk, ndx ] = min( abs( t - tplot ) );
+
+      load( fnames{iiviz} );
+      subplot( 2, 2, iiviz );
+      [ junk ndx ] = min( abs( t - tplot ) );
+      rhob = reshape( rhob, n * mz , n * mx );
+      x = reshape( x, n * mz, n * mx );
+      z = reshape( z, n * mz, n * mx );
+      ux = reshape( ux, n * mz, n * mx, length(t) );
+      contourf( x, z, ux(:,:,ndx), 25 );
+      set( gca, 'xlim', win );
+      title( [ method{iiviz} ': u-velocity' ] );
+      colorbar;
+
+   end
+   set( gcf,'pos',[2     5   948   690]);
+   print_graphics( gcf, 'compare_djl_ux', 1, 0, 0, 0 );
+
+   % Figure 5c: contour plot of the final w-velocity.
+   figure;
+   for iiviz = 1:length(method)
+
+      [ junk, ndx ] = min( abs( t - tplot ) );
+
+      load( fnames{iiviz} );
+      subplot( 2, 2, iiviz );
+      [ junk ndx ] = min( abs( t - tplot ) );
+      rhob = reshape( rhob, n * mz , n * mx );
+      x = reshape( x, n * mz, n * mx );
+      z = reshape( z, n * mz, n * mx );
+      uz = reshape( uz, n * mz, n * mx, length(t) );
+      contourf( x, z, uz(:,:,ndx), 25 );
+      set( gca, 'xlim', win );
+      title( [ method{iiviz} ': w-velocity' ] );
+      colorbar;
+
+   end
+   set( gcf,'pos',[2     5   948   690]);
+   print_graphics( gcf, 'compare_djl_uz', 1, 0, 0, 0 );
 
    % Figure 6: show norm of velocity field to get a sense of instability.
    figure;

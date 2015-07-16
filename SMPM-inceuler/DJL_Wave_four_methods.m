@@ -7,9 +7,12 @@
 % Cornell University.
 
    % Set some constants / inputs.
+   %n    = 5;
+   %mx   = 20;
+   %mz   = 10;
    n    = 5;
-   mx   = 20;
-   mz   = 10;
+   mx   = 10;
+   mz   = 5;
    Lx   = 10.0;
    Lz   = 0.15;
    rho0 = 1000.0;
@@ -75,7 +78,7 @@
    tau(4) = 1.0e4;
 
    % Set some time-stepping parameters.
-   t_final = 0.75;
+   t_final = 2.0;
    min_dt  = 0.05;
    min_dx  = min( z(2) - z(1), x(n*mz + 1) - x(1) );  % XXX: Only works for cartesian grids.
    c       = sqrt(max( ux0.^2 + uz0.^2 )) + 0 * c;
@@ -84,6 +87,8 @@
    % Solve the incompressible Euler equations three times, each with a different projection method.
    ptypes = { 'poisson', 'postproject', 'nullspace-direct', 'postnull' };
    fname  = { 'djl_poisson', 'djl_postproject', 'djl_nullspace', 'djl_postnull' };
+   ptypes = { 'postproject' };
+   fname  = { 'junk' };
    for ii = 1:length(ptypes)
       [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, rhoi, rhob, dt, t_final, ptypes{ii}, tau(ii) );
 
@@ -100,4 +105,12 @@
    rhob = reshape( rhob, n * mz, n * mx );
    x    = reshape( x, n * mz, n * mx );
    z    = reshape( z, n * mz, n * mx );
+
+   % Check some energy stuff.
+   E  = 0.5 * rho.*(ux.^2 + uz.^2);
+   Eu = 0.5 * rho.*(uxu.^2 + uzu.^2);
+   Etot  = integrate_grid_function( reshape( E,  n*n*mx*mz, length(t)), x(:), z(:), n, mx, mz );
+   Eutot = integrate_grid_function( reshape( Eu, n*n*mx*mz, length(t)), x(:), z(:), n, mx, mz );
+
+
 

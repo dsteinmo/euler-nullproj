@@ -105,6 +105,8 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
    ux(  :, 1 ) = ux0;
    uz(  :, 1 ) = uz0;
    rho( :, 1 ) = rhoi;
+   uzu = uz;
+   uxu = ux;
    while t(end) < t_final
 
       % Apply the non-linear advection operator.
@@ -121,6 +123,9 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
 
       % Update the current density.
       iirho = rho(:,end) + dt * Arho;
+
+      uxu  = [uxu iiux];
+      uzu  = [uzu iiuz];
 
       % Project onto the divergence-free basis.
       switch ptype
@@ -236,5 +241,10 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
       end
 
    end
+
+   %XXX debug.
+   assignin( 'base', 'uxu', reshape( uxu, n * mz, n * mx, length(t) ) );
+   assignin( 'base', 'uzu', reshape( uzu, n * mz, n * mx, length(t) ) );
+
 
 end

@@ -61,4 +61,8 @@ function [ N ] = compute_divergence_nullspace( D, n, mx, mz );
    Nze = permute_e2z( Nze', n, mx, mz );
    N   = [Nxe; Nze];
 
+   % Delete zero columns.
+   ndx = sum( abs(N), 1 );
+   N   = N(:, ndx > 0 );
+
 end
