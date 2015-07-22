@@ -7,12 +7,9 @@
 % Cornell University.
 
    % Set some constants / inputs.
-   %n    = 5;
-   %mx   = 20;
-   %mz   = 10;
    n    = 5;
-   mx   = 10;
-   mz   = 5;
+   mx   = 20;
+   mz   = 10;
    Lx   = 10.0;
    Lz   = 0.15;
    rho0 = 1000.0;
@@ -78,17 +75,16 @@
    tau(4) = 1.0e4;
 
    % Set some time-stepping parameters.
-   t_final = 2.0;
+   t_final = 10.0;
    min_dt  = 0.05;
    min_dx  = min( z(2) - z(1), x(n*mz + 1) - x(1) );  % XXX: Only works for cartesian grids.
    c       = sqrt(max( ux0.^2 + uz0.^2 )) + 0 * c;
-   dt      = min( min_dx / c / 10, min_dt );
+   %dt      = min( min_dx / c / 4, min_dt );
+   dt      = min_dt;
 
    % Solve the incompressible Euler equations three times, each with a different projection method.
    ptypes = { 'poisson', 'postproject', 'nullspace-direct', 'postnull' };
    fname  = { 'djl_poisson', 'djl_postproject', 'djl_nullspace', 'djl_postnull' };
-   ptypes = { 'postproject' };
-   fname  = { 'junk' };
    for ii = 1:length(ptypes)
       [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, rhoi, rhob, dt, t_final, ptypes{ii}, tau(ii) );
 

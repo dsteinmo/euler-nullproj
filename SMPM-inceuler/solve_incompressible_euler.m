@@ -31,7 +31,7 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
    Lz      = max(z) - min(z);
    rho0    = 1000.0;
    g       = 9.8;
-   CFL_MAX = 0.1;
+   CFL_MAX = 0.25;
 
    % Build the operator matrices.
    r = n * n * mx * mz;
@@ -115,11 +115,11 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
 
       % Apply the advective operator to the density.
       Arho = apply_smpm_advection( rho(:,end), Dx, Dz, ux(:,end), uz(:,end), Lx, Lz, n, mx, mz );
-      Arho = Arho -  uz(:, end) .* rhob_z;
+      Arho = Arho - uz(:, end) .* rhob_z;
 
       % Update the current velocity.
       iiux = ux(:,end) + dt * Aux;
-      iiuz = uz(:,end) + dt * Auz - dt * g * rho(:,end) ./ ( rhob + rho0 ) ;
+      iiuz = uz(:,end) + dt * Auz - dt * g * rho(:,end) ./ ( 0 * rhob + rho0 ) ;
 
       % Update the current density.
       iirho = rho(:,end) + dt * Arho;
