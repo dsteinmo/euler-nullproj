@@ -87,24 +87,27 @@ while (time(tstep)<FinalTime)
    Qnp1_estimate = Qn + dt*rhsQn - dt*gradp_nmh;
 
    %filter velocity:
-   for n=2:3
+   for n=1:3
        Qnp1_estimate(:,:,n) = Filt*Qnp1_estimate(:,:,n);
    end
    
-   %Form estimate at n+1/2 step.
-   Qnph = 0.5*(Qnp1_estimate + Qn);
+   for jj=1:1
+       %Form estimate at n+1/2 step.
+       Qnph = 0.5*(Qnp1_estimate + Qn);
 
-   %Get estimate for convective/source terms at half step.
-   rhsQnph = EulerRHS2D(Qnph,time,BC,g);
+       %Get estimate for convective/source terms at half step.
+       rhsQnph = EulerRHS2D(Qnph,time,BC,g);
 
-   %extrapolate to get corrected estimate for grad p at n+1/2 step.
-   gradp_nph = rhsQnph - rhsQn + gradp_nmh;
-   
-   %advective step (corrector)
-   Qnp1_estimate = Qn + dt*rhsQnph - dt*gradp_nph;
-   
+       %extrapolate to get corrected estimate for grad p at n+1/2 step.
+       gradp_nph = rhsQnph - rhsQn + gradp_nmh;
+       
+       %advective step (corrector)
+       %Qnp1_estimate = Qn + dt*rhsQnph - dt*gradp_nph;
+       Qnp1_estimate = Qn + dt*rhsQnph - dt*gradp_nph;   
+   end
+
    %filter velocity:
-   for n=2:3
+   for n=1:3
        Qnp1_estimate(:,:,n) = Filt*Qnp1_estimate(:,:,n);
    end
    
@@ -206,7 +209,7 @@ while (time(tstep)<FinalTime)
     drawnow;
     %bn
     
-    %save(sprintf('out%07d.mat',tstep),'x','y','Np','K','N','Qnp1','time','tstep','maxdivseries','divu','divnormseries');
+    save(sprintf('out%07d.mat',tstep),'x','y','Np','K','N','Qnp1','time','tstep','maxdivseries','divu','divnormseries');
     disp(['outputting at t=' num2str(time(tstep))]);
     
     

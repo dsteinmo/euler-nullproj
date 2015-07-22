@@ -62,7 +62,7 @@
       uz0 = uz0(:);
 
    % Fix the units on the DJL data.
-   rhob = rhob * 1000;
+   rhob = rhob * 1000 - rho0;
    rhoi = rhoi * 1000;
 
    % Build the vector C0 continuity operator.
@@ -107,6 +107,4 @@
    Eu = 0.5 * rho.*(uxu.^2 + uzu.^2);
    Etot  = integrate_grid_function( reshape( E,  n*n*mx*mz, length(t)), x(:), z(:), n, mx, mz );
    Eutot = integrate_grid_function( reshape( Eu, n*n*mx*mz, length(t)), x(:), z(:), n, mx, mz );
-
-
 

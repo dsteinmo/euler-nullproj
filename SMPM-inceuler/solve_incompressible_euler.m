@@ -107,11 +107,17 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
    rho( :, 1 ) = rhoi;
    uzu = uz;
    uxu = ux;
+   Gpx = 0 * ux(: ,1);
+   Gpz = 0 * uz(:, 1);
    while t(end) < t_final
 
       % Apply the non-linear advection operator.
       Aux = apply_smpm_advection( ux(:,end), Dx, Dz, ux(:,end), uz(:,end), Lx, Lz, n, mx, mz );
       Auz = apply_smpm_advection( uz(:,end), Dx, Dz, ux(:,end), uz(:,end), Lx, Lz, n, mx, mz );
+
+      % Apply the pressure gradient term.
+      Aux = Aux - Gpx;
+      Auz = Auz - Gpz;
 
       % Apply the advective operator to the density.
       Arho = apply_smpm_advection( rho(:,end), Dx, Dz, ux(:,end), uz(:,end), Lx, Lz, n, mx, mz );
@@ -119,7 +125,11 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
 
       % Update the current velocity.
       iiux = ux(:,end) + dt * Aux;
+<<<<<<< HEAD
       iiuz = uz(:,end) + dt * Auz - dt * g * rho(:,end) ./ ( 0 * rhob + rho0 ) ;
+=======
+      iiuz = uz(:,end) + dt * Auz - dt * g * rho(:,end) ./ ( rho0 ) ;
+>>>>>>> 0065346126cf12b7b6df5143f641e314392c6fd1
 
       % Update the current density.
       iirho = rho(:,end) + dt * Arho;
