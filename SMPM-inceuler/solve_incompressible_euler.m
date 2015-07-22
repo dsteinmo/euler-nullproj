@@ -13,7 +13,7 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
 %     rhob           - boussinesq density, or 0.0 if there is no background stratification.
 %     dt, t_final    - maximum timestep, final time.
 %     ptype          - incompressibility enforcement method:
-%                      {'poisson','nullspace-direct','nullspace-iterative','postproject',postnull,'none'}.
+%                      {'poisson','nullspace-direct','nullspace-iterative','postproject',postnull,'normal','none'}.
 %     tau            - either the regularization coefficient, or
 %                      the factor multiplying the penalty coefficient.
 %
@@ -116,8 +116,8 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
       Auz = apply_smpm_advection( uz(:,end), Dx, Dz, ux(:,end), uz(:,end), Lx, Lz, n, mx, mz );
 
       % Apply the pressure gradient term.
-      Aux = Aux - Gpx;
-      Auz = Auz - Gpz;
+      %Aux = Aux - Gpx;
+      %Auz = Auz - Gpz;
 
       % Apply the advective operator to the density.
       Arho = apply_smpm_advection( rho(:,end), Dx, Dz, ux(:,end), uz(:,end), Lx, Lz, n, mx, mz );
@@ -125,7 +125,7 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
 
       % Update the current velocity.
       iiux = ux(:,end) + dt * Aux;
-      iiuz = uz(:,end) + dt * Auz - dt * g * rho(:,end) ./ ( rho0 ) ;
+      iiuz = uz(:,end) + dt * Auz - dt * g * rho(:,end) ./ ( rho0 + rhob ) ;
 
       % Update the current density.
       iirho = rho(:,end) + dt * Arho;
@@ -221,6 +221,31 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
 %            % Display some statistics.
 %            fprintf([ '   GMRES converged in ', num2str( m ) ' iterations.\n'] );
 
+         case 'normal' % Use just a normal equation, no explicit computation of the null-space.
+
+            % Set up a right-hand-side vector.
+            b = [ iiux; iiuz ];
+
+            % Print some diagnostic information.
+            divu = norm( D*b );
+            conu = norm( E_C0 * b );
+
+            % Solve the normal equations.
+            L1 = norm( b );
+            L2 = divu;
+            L3 = conu;
+            L1 = L1 / ( L1 + L2 + L3 );
+            L2 = L2 / ( L1 + L2 + L3 );
+            L3 = L3 / ( L1 + L2 + L3 );
+            L1 = 1; L2 = 1000.0; L3 = 1000.0;
+            iiu = ( L1 * eye( 2*r, 2*r ) + L2 * E_C0'*E_C0 + L3 * D'*D ) \ b;
+            iiux = iiu(1:r);
+            iiuz = iiu(r+1:end);
+
+            fprintf( [ 'div(u) reduced from ', num2str( divu ), ' to ', num2str( norm(D*[iiux;iiuz] ) ) ' \n' ] );
+            fprintf( [ 'con(u) reduced from ', num2str( conu ), ' to ', num2str( norm(E_C0*[iiux;iiuz] ) )  ' \n' ] );
+            fprintf( [ 'norm(u) changed by  ', num2str( norm(  [iiux;iiuz] )  - norm(b) ), ' \n ' ]);
+
       end
 
       % Print out a CFL number.
@@ -249,8 +274,8 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
    end
 
    %XXX debug.
-   assignin( 'base', 'uxu', reshape( uxu, n * mz, n * mx, length(t) ) );
-   assignin( 'base', 'uzu', reshape( uzu, n * mz, n * mx, length(t) ) );
+   %assignin( 'base', 'uxu', reshape( uxu, n * mz, n * mx, length(t) ) );
+   %assignin( 'base', 'uzu', reshape( uzu, n * mz, n * mx, length(t) ) );
 
 
 end

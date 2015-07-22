@@ -35,7 +35,7 @@ function Aq = apply_smpm_advection( q, Dx, Dz, ux, uz, Lx, Lz, n, mx, mz );
    div_uq = Dx * ( ux .* q ) + Dz * ( uz .* q );
 
    % Compute the advection operator in skew-symmetric form.
-   Aq = -1.0 * ( 0.5 * ux .* q_x + uz .* q_z ) - 0.5 * div_uq;
+   Aq = -0.5 * ( ux .* q_x + uz .* q_z ) - 0.5 * div_uq;
 
    % Compute u-dot-n in the vertical direction (normal vectors always point up).
    udotn = uz;
@@ -96,7 +96,10 @@ function Aq = apply_smpm_advection( q, Dx, Dz, ux, uz, Lx, Lz, n, mx, mz );
             Aq(right) = Aq(right) - tau * ( 2 / hx ) * abs( udotn(right) ) * ( q(right) - q(left) );
 
          end
+
+         udotn(left) = -1 * udotn(left);
       end
    end
+
 
 end
