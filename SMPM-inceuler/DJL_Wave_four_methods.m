@@ -65,7 +65,7 @@
       uz0 = uz0(:);
 
    % Fix the units on the DJL data.
-   rhob = rhob * 1000;
+   rhob = rhob * 1000 - rho0;
    rhoi = rhoi * 1000;
 
    % Build the vector C0 continuity operator.
@@ -87,8 +87,6 @@
    % Solve the incompressible Euler equations three times, each with a different projection method.
    ptypes = { 'poisson', 'postproject', 'nullspace-direct', 'postnull' };
    fname  = { 'djl_poisson', 'djl_postproject', 'djl_nullspace', 'djl_postnull' };
-   ptypes = { 'postproject' };
-   fname  = { 'junk' };
    for ii = 1:length(ptypes)
       [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, rhoi, rhob, dt, t_final, ptypes{ii}, tau(ii) );
 
