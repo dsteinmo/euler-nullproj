@@ -125,11 +125,7 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
 
       % Update the current velocity.
       iiux = ux(:,end) + dt * Aux;
-<<<<<<< HEAD
-      iiuz = uz(:,end) + dt * Auz - dt * g * rho(:,end) ./ ( 0 * rhob + rho0 ) ;
-=======
       iiuz = uz(:,end) + dt * Auz - dt * g * rho(:,end) ./ ( rho0 ) ;
->>>>>>> 0065346126cf12b7b6df5143f641e314392c6fd1
 
       % Update the current density.
       iirho = rho(:,end) + dt * Arho;
