@@ -89,6 +89,16 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
       T = N'*N + tau * ( E_C0 * N )' * ( E_C0 * N );
    end
 
+   % Set up the twice-penalized normal equatinos for a direct method if asked to do so.
+   if strcmp( ptype, 'normal' )
+
+      fprintf('Factoring normal equations. \n' );
+      L1 = 1; L2 = tau; L3 = tau;
+      T2 = L1 * eye( 2*r, 2*r ) + L2 * E_C0'*E_C0 + L3 * D'*D ;
+      [LT UT] = lu(T2);
+
+   end
+
    % Set some time-stepping parameters.
    min_dx  = z(2) - z(1);  % XXX: Only works for cartesian grids.
    c       = sqrt(max( ux0.^2 + uz0.^2 ));
@@ -231,14 +241,7 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
             conu = norm( E_C0 * b );
 
             % Solve the normal equations.
-            L1 = norm( b );
-            L2 = divu;
-            L3 = conu;
-            L1 = L1 / ( L1 + L2 + L3 );
-            L2 = L2 / ( L1 + L2 + L3 );
-            L3 = L3 / ( L1 + L2 + L3 );
-            L1 = 1; L2 = 1000.0; L3 = 1000.0;
-            iiu = ( L1 * eye( 2*r, 2*r ) + L2 * E_C0'*E_C0 + L3 * D'*D ) \ b;
+            iiu =   UT \ ( LT \ b );
             iiux = iiu(1:r);
             iiuz = iiu(r+1:end);
 
@@ -274,8 +277,8 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
    end
 
    %XXX debug.
-   %assignin( 'base', 'uxu', reshape( uxu, n * mz, n * mx, length(t) ) );
-   %assignin( 'base', 'uzu', reshape( uzu, n * mz, n * mx, length(t) ) );
+   assignin( 'base', 'uxu', reshape( uxu, n * mz, n * mx, length(t) ) );
+   assignin( 'base', 'uzu', reshape( uzu, n * mz, n * mx, length(t) ) );
 
 
 end

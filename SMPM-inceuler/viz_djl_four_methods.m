@@ -12,7 +12,23 @@
    win = [ 1, 4 ];
 
    % Set the time you want to extract.
-   tplot = 1.0;
+   tplot = 19.0;
+
+   % Figure 0: total number of time-steps.
+   figure;
+   hold all;
+   for iiviz = 1:length(method)
+
+      load( fnames{iiviz} );
+      plot(t);
+
+   end
+   xlabel( 'time-step' );
+   ylabel( 'physical time' );
+   box on;
+   legend( method, 'Location', 'SouthEast' );
+   print_graphics( gcf, 'compare_djl_time', 1, 0, 0, 0 );
+
 
    % Figure 1: quiver plot of the final velocity.
    figure;
@@ -168,3 +184,26 @@
    legend( method , 'Location', 'SouthEast' );
    box on;
    print_graphics( gcf, 'compare_djl_velocity_norm', 1, 0, 0, 0 );
+
+   % Figure 7: kinetic energy conservation.
+   figure;
+   hold all;
+   for iiviz = 1:length(method)
+
+      load( fnames{iiviz} );
+      [ junk ndx ] = min( abs( t - tplot ) );
+      u = sqrt( ux.^2 + uz.^2 );
+      KE = 0 * u;
+      rhob = reshape( rhob, n * mz, n * mx );
+      for ii = 1:length(t)
+         KE(:,:,ii) = 0.5 * ( rho0 + rhob + rho(:,:,ii) ).* u(:,:,ii);
+      end
+      energy = integrate_grid_function( reshape( KE, n * n * mx * mz, length(t) ), x, z, n, mx, mz );
+      plot( t(1:ndx), energy(1:ndx) );
+
+   end
+   xlabel( 'time' );
+   ylabel( 'total kinetic energy' );
+   box on;
+   legend( method, 'Location', 'SouthEast' );
+   print_graphics( gcf, 'compare_djl_energy', 1, 0, 0, 0 );
