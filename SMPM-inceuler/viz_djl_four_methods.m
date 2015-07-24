@@ -3,10 +3,10 @@
 % Rayleigh-Taylor problem.
 
    % Name the three methods.
-   method = { 'Poisson', 'Post-Projection', 'Nullspace-Projection', 'Post-Weak-Projection' };
+   method = { 'Poisson', 'Post-Projection', 'Penalized', 'Post-Weak-Projection' };
 
    % Set some filenames in order.
-   fnames = { 'djl_poisson.mat', 'djl_postproject.mat', 'djl_nullspace.mat', 'djl_postnull.mat' };
+   fnames = { 'djl_poisson.mat', 'djl_postproject.mat', 'djl_normal.mat', 'djl_postnull.mat' };
 
    % Set the visualization window in x.
    win = [ 1, 4 ];

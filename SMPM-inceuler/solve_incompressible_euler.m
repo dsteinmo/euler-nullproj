@@ -13,7 +13,7 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
 %     rhob           - boussinesq density, or 0.0 if there is no background stratification.
 %     dt, t_final    - maximum timestep, final time.
 %     ptype          - incompressibility enforcement method:
-%                      {'poisson','nullspace-direct','nullspace-iterative','postproject',postnull,'normal','none'}.
+%                      {'poisson','nullspace-direct','nullspace-iterative','postproject',postnull,'postnormal','normal','none'}.
 %     tau            - either the regularization coefficient, or
 %                      the factor multiplying the penalty coefficient.
 %
@@ -45,7 +45,7 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
    % Get a penalty coefficient.
 
    % Build the Poisson matrix and its null space.
-   if strcmp( ptype, 'poisson' ) || strcmp( ptype, 'postproject' ) || strcmp( ptype, 'postnull' )
+   if strcmp( ptype, 'poisson' ) || strcmp( ptype, 'postproject' ) || strcmp( ptype, 'postnull' ) || strcmp( ptype, 'postnormal' )
       omega = 2.0 / ( n - 1 ) / n;
       kappa = omega;
       pen   = 1.0 / omega * ( 1.0 + ( 2 * kappa ) - ( 2 * sqrt( kappa^2 + kappa ) ) );
@@ -90,7 +90,7 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
    end
 
    % Set up the twice-penalized normal equatinos for a direct method if asked to do so.
-   if strcmp( ptype, 'normal' )
+   if strcmp( ptype, 'normal' ) || strcmp( ptype, 'postnormal' )
 
       fprintf('Factoring normal equations. \n' );
       L1 = 1; L2 = tau; L3 = tau;
@@ -249,6 +249,35 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
             fprintf( [ 'con(u) reduced from ', num2str( conu ), ' to ', num2str( norm(E_C0*[iiux;iiuz] ) )  ' \n' ] );
             fprintf( [ 'norm(u) changed by  ', num2str( norm(  [iiux;iiuz] )  - norm(b) ), ' \n ' ]);
 
+         case 'postnormal' % Solve the Poisson equation, then post-process into the null-space.
+
+            % Set up a right-hand-side.
+            b = -D * [ iiux; iiuz ] / dt;
+            b = b - u0 * u0' * b;
+
+            % Solve the Poisson equation.
+            p = L \ b;
+
+            % Update the current velocities.
+            Gp = G * p;
+            iiux = iiux + dt * Gp(1:r);
+            iiuz = iiuz + dt * Gp(r+1:end);
+
+            % Set up a right-hand-side vector.
+            b = [ iiux; iiuz ];
+
+            % Print some diagnostic information.
+            divu = norm( D*b );
+            conu = norm( E_C0 * b );
+
+            % Solve the normal equations.
+            iiu =   UT \ ( LT \ b );
+            iiux = iiu(1:r);
+            iiuz = iiu(r+1:end);
+
+            fprintf( [ 'div(u) reduced from ', num2str( divu ), ' to ', num2str( norm(D*[iiux;iiuz] ) ) ' \n' ] );
+            fprintf( [ 'con(u) reduced from ', num2str( conu ), ' to ', num2str( norm(E_C0*[iiux;iiuz] ) )  ' \n' ] );
+            fprintf( [ 'norm(u) changed by  ', num2str( norm(  [iiux;iiuz] )  - norm(b) ), ' \n ' ]);
       end
 
       % Print out a CFL number.
