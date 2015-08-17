@@ -13,7 +13,7 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
 %     rhob           - boussinesq density, or 0.0 if there is no background stratification.
 %     dt, t_final    - maximum timestep, final time.
 %     ptype          - incompressibility enforcement method:
-%                      {'poisson','nullspace-direct','nullspace-iterative','postproject',postnull,'postnormal','normal','none'}.
+%                      {'poisson','nullspace-direct','nullspace-iterative','postproject','postnull','postnormal','normal','none'}.
 %     tau            - either the regularization coefficient, or
 %                      the factor multiplying the penalty coefficient.
 %

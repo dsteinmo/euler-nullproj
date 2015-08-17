@@ -1,5 +1,6 @@
-function [ D2x, D2z, E0, E1x, E1z, B0x, B0z, B1 ] = smpm_assemble_2D_cartesian( n, mx, mz, Lx, Lz )
-% [Dx, Dz, E0, E1x, E1z, B0, B1] = smpm_assemble_2D_cartesian( n, mx, mz, Lx, Lz )
+function varargout = smpm_assemble_2D_cartesian( n, mx, mz, Lx, Lz );
+% [Dx, Dz, E0, E1x, E1z, B0, B1      ] = smpm_assemble_2D_cartesian( n, mx, mz, Lx, Lz )
+% [Dx, Dz, E0, E1x, E1z, Bnx, Bnz, B1] = smpm_assemble_2D_cartesian( n, mx, mz, Lx, Lz )
 %
 %  Builds the domain decomposition of the spectral multidomain penalty method
 %  discretization of the Poisson equation on a uniform cartesian grid.
@@ -142,11 +143,22 @@ E0   = kron( speye( mx * n ), sparse( C0z ) ) + kron( sparse( C0x ), speye( mz *
 E1x  = kron( sparse( C1x * Dx ), speye( mz * n ) ); %
 E1z  = kron( speye( mx * n ), sparse( C1z * Dz ) ); % XXX: c.f. comment below about swapping these.
 B1   = kron( speye( mx * n ), sparse( B1z * Dz ) ) + kron( sparse( B1x * Dx ), speye( mz * n ) );
+Bnz  = kron( speye( mx * n ), sparse( B1z * Dz ) );
+Bnx  = kron( sparse( B1x * Dx ), speye( mz * n ) );
 B0x  = kron( sparse( abs(B1x) ), speye( mz * n ) ); %
 B0z  = kron( speye( mx * n ), sparse( abs(B1z) ) ); % XXX: I think I need to swap B1x with B1z; this won't matter unless the grids are not square.
 
 % Build two-dimensional versions of the derivative operator.
 D2z = kron( eye( mx * n ), Dz );
 D2x = kron( Dx, eye( mz * n ) );
+
+% Set the output argument.
+if nargout == 8
+   varargout = { D2x, D2z, E0, E1x, E1z, B0x, B0z, B1 };
+end
+if nargout == 9
+   varargout = { D2x, D2z, E0, E1x, E1z, Bnx, Bnz, B0z, B1 };
+end
+
 
 end

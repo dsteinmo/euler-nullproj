@@ -3,16 +3,17 @@
 % Rayleigh-Taylor problem.
 
    % Name the three methods.
-   method = { 'Poisson', 'Post-Projection', 'Penalized', 'Post-Weak-Projection' };
+   method = { 'Poisson', 'Post-Projection', 'Penalized Projection', 'Post-Weak-Projection' };
 
    % Set some filenames in order.
-   fnames = { 'djl_poisson.mat', 'djl_postproject.mat', 'djl_normal.mat', 'djl_postnull.mat' };
+   fnames = { 'djl_poisson.mat', 'djl_postproject.mat', 'djl_postnormal.mat', 'djl_postnull.mat' };
+   fnames = { 'djl_poisson_hires.mat', 'djl_postproject_hires.mat', 'djl_postnormal_hires.mat', 'djl_postnull_hires.mat' };
 
    % Set the visualization window in x.
-   win = [ 1, 4 ];
+   win = [ 5, 10 ];
 
    % Set the time you want to extract.
-   tplot = 19.0;
+   tplot = 48.0;
 
    % Figure 0: total number of time-steps.
    figure;
@@ -26,7 +27,7 @@
    xlabel( 'time-step' );
    ylabel( 'physical time' );
    box on;
-   legend( method, 'Location', 'SouthEast' );
+   legend( method, 'Location', 'NorthEast' );
    print_graphics( gcf, 'compare_djl_time', 1, 0, 0, 0 );
 
 
@@ -61,7 +62,7 @@
    xlabel( 'time' );
    ylabel( 'total mass' );
    box on;
-   legend( method, 'Location', 'SouthEast' );
+   legend( method, 'Location', 'NorthEast' );
    print_graphics( gcf, 'compare_djl_mass', 1, 0, 0, 0 );
 
    % Figure 3: continuity.
@@ -79,7 +80,7 @@
    end
    xlabel( 'time' );
    ylabel( 'C^0 discontinuity norm' );
-   legend( method , 'Location', 'SouthEast' );
+   legend( method , 'Location', 'NorthEast' );
    box on;
    print_graphics( gcf, 'compare_djl_continuity', 1, 0, 0, 0 );
 
@@ -98,7 +99,7 @@
    end
    xlabel( 'time' );
    ylabel( 'norm of divergence' );
-   legend( method , 'Location', 'SouthEast' );
+   legend( method , 'Location', 'NorthEast' );
    box on;
    print_graphics( gcf, 'compare_djl_divergence', 1, 0, 0, 0 );
 
@@ -114,7 +115,7 @@
       rhob = reshape( rhob, n * mz , n * mx );
       x = reshape( x, n * mz, n * mx );
       z = reshape( z, n * mz, n * mx );
-      contourf( x, z, rhob + rho(:,:,ndx), 25 );
+      contour( x, z, rhob + rho(:,:,ndx), 5 );
       set( gca, 'xlim', win );
       title( [ method{iiviz} ': density' ] );
       colorbar;
@@ -136,7 +137,7 @@
       x = reshape( x, n * mz, n * mx );
       z = reshape( z, n * mz, n * mx );
       ux = reshape( ux, n * mz, n * mx, length(t) );
-      contourf( x, z, ux(:,:,ndx), 25 );
+      contour( x, z, ux(:,:,ndx), 5 );
       set( gca, 'xlim', win );
       title( [ method{iiviz} ': u-velocity' ] );
       colorbar;
@@ -158,7 +159,7 @@
       x = reshape( x, n * mz, n * mx );
       z = reshape( z, n * mz, n * mx );
       uz = reshape( uz, n * mz, n * mx, length(t) );
-      contourf( x, z, uz(:,:,ndx), 25 );
+      contour( x, z, uz(:,:,ndx), 5 );
       set( gca, 'xlim', win );
       title( [ method{iiviz} ': w-velocity' ] );
       colorbar;
@@ -181,7 +182,7 @@
    end
    xlabel( 'time' );
    ylabel( 'norm of velocity' );
-   legend( method , 'Location', 'SouthEast' );
+   legend( method , 'Location', 'NorthEast' );
    box on;
    print_graphics( gcf, 'compare_djl_velocity_norm', 1, 0, 0, 0 );
 
@@ -205,5 +206,5 @@
    xlabel( 'time' );
    ylabel( 'total kinetic energy' );
    box on;
-   legend( method, 'Location', 'SouthEast' );
+   legend( method, 'Location', 'NorthEast' );
    print_graphics( gcf, 'compare_djl_energy', 1, 0, 0, 0 );
