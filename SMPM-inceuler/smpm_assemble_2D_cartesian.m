@@ -1,6 +1,6 @@
 function varargout = smpm_assemble_2D_cartesian( n, mx, mz, Lx, Lz );
-% [Dx, Dz, E0, E1x, E1z, B0, B1      ] = smpm_assemble_2D_cartesian( n, mx, mz, Lx, Lz )
-% [Dx, Dz, E0, E1x, E1z, Bnx, Bnz, B1] = smpm_assemble_2D_cartesian( n, mx, mz, Lx, Lz )
+% [Dx, Dz, E0, E1x, E1z, B0x, B0z, B1       ] = smpm_assemble_2D_cartesian( n, mx, mz, Lx, Lz )
+% [Dx, Dz, E0, E1x, E1z, B0x, B0z, Bnx, Bnz ] = smpm_assemble_2D_cartesian( n, mx, mz, Lx, Lz )
 %
 %  Builds the domain decomposition of the spectral multidomain penalty method
 %  discretization of the Poisson equation on a uniform cartesian grid.
@@ -157,7 +157,7 @@ if nargout == 8
    varargout = { D2x, D2z, E0, E1x, E1z, B0x, B0z, B1 };
 end
 if nargout == 9
-   varargout = { D2x, D2z, E0, E1x, E1z, Bnx, Bnz, B0z, B1 };
+   varargout = { D2x, D2z, E0, E1x, E1z, B0x, B0z, Bnx, Bnz };
 end
 
 
