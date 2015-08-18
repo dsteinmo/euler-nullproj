@@ -35,7 +35,8 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
 
    % Build the operator matrices.
    r = n * n * mx * mz;
-   [Dx Dz E0 E1x E1z B0x B0z B1] = smpm_assemble_2D_cartesian( n, mx, mz, Lx, Lz );
+   [Dx Dz E0 E1x E1z B0x B0z Bnx Bnz] = smpm_assemble_2D_cartesian( n, mx, mz, Lx, Lz );
+   B1 = Bnx + Bnz;
 
    % Do some argument handling.
    if length( rhob ) == 1
@@ -50,7 +51,7 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
       kappa = omega;
       pen   = 1.0 / omega * ( 1.0 + ( 2 * kappa ) - ( 2 * sqrt( kappa^2 + kappa ) ) );
       EL = tau * pen * (E0 + E1x + E1z) + pen^2 * B1;
-      L = Dx * Dx + Dz * Dz + tau * EL;
+      L = Dx * Dx + Dz * Dz - tau * EL;
       [u0, junk, junk] = svds( L, 1, 0 );
    end
 
@@ -298,7 +299,7 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
       t  = [ t; t(end) + dt ];
       fprintf( ['   New Time-Step: ', num2str(dt) '\n'] );
 
-      if dt < 1.0e-10
+      if dt < 1.0e-5
          fprintf( 'Simulation has gone unstable. Exiting.\n' );
          return;
       end

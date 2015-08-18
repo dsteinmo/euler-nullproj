@@ -100,6 +100,4 @@ function Aq = apply_smpm_advection( q, Dx, Dz, ux, uz, Lx, Lz, n, mx, mz );
          udotn(left) = -1 * udotn(left);
       end
    end
-
-
 end
