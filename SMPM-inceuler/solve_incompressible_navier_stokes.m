@@ -1,4 +1,4 @@
-function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, rhoi, rhob, max_dt, t_final, ptype, tau, nu, bc_viscous, bc_diffusion )
+function [ux uz rho t] = solve_incompressible_navier_stokes( n, mx, mz, x, z, ux0, uz0, rhoi, rhob, max_dt, t_final, ptype, tau, nu, bc_viscous, bc_diffusion )
 % [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, rho0, rhob, dt, t_final, ptype, tau, nu, bc_viscous, bc_diffusion );
 %
 %  Solves the incompressible Navier-Stokes equations with a spectral multidomain
@@ -34,7 +34,7 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
    Lz      = max(z) - min(z);
    rho0    = 1000.0;
    g       = 9.8;
-   CFL_MAX = 0.25;
+   CFL_MAX = 0.10;
 
    % Build the operator matrices.
    r = n * n * mx * mz;
@@ -47,43 +47,64 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
    end
 
    % Get a penalty coefficient.
+   hx = Lx / mx;
+   hz = Lz / mx;
+
+   dt = 1.0;
 
    % Build the Poisson matrix and its null space.
    if strcmp( ptype, 'poisson' ) || strcmp( ptype, 'postproject' ) || strcmp( ptype, 'postnull' ) || strcmp( ptype, 'postnormal' )
       omega = 2.0 / ( n - 1 ) / n;
       kappa = omega;
-      pen   = 1.0 / omega * ( 1.0 + ( 2 * kappa ) - ( 2 * sqrt( kappa^2 + kappa ) ) );
+      pen    = 1.0 / omega * ( 1.0 + ( 2 * kappa ) - ( 2 * sqrt( kappa^2 + kappa ) ) );
+      pen_bc = 1.0 / omega^2;
       EL = tau * pen * (E0 + E1x + E1z) - pen^2 * B1;
-      L = Dx * Dx + Dz * Dz + tau * EL;
+      EL = tau * pen * ( 2 / hx ) * ( 2 / hz ) * E0 + ( tau * pen * 2 / hx ) * E1x + ( tau * pen * 2 / hz ) * E1z + ...
+                 pen_bc * 2 / hx * Bnx + pen_bc * 2 / hz * Bnz;
+      L = Dx * Dx + Dz * Dz - EL;
       [u0, junk, junk] = svds( L, 1, 0 );
    end
 
    % Build the viscous operators.
-   if bc_viscous == 'free'
+   if strcmp( bc_viscous, 'free' )
       omega = 2.0 / ( n - 1 ) / n;
       kappa = omega;
-      pen   = 1.0 / omega * ( 1.0 + ( 2 * kappa ) - ( 2 * sqrt( kappa^2 + kappa ) ) );
-      Lux = Dx * Dx + Dz * Dz - tau * ( pen * (E0 + E1x + E1z) + pen^2 * ( B0x + Bnz ) );
-      Luz = Dx * Dx + Dz * Dz - tau * ( pen * (E0 + E1x + E1z) + pen^2 * ( B0z + Bnx ) );
+      pen   = 1.0 / ( omega * nu ) * ( nu + ( 2 * kappa ) - ( 2 * sqrt( kappa^2 + nu * kappa ) ) );
+      pen_n = nu * dt / omega;
+      pen_d = nu * dt / omega^2;
+      Lux = Dx * Dx + Dz * Dz - tau * ( pen * ( 2 / hx  * 2 / hz ) * E0 + nu * 2 / hx * pen * E1x + nu * 2 / hz * pen * E1z ) - ...
+                               ( 2 / hx )^2 * pen_d * B0x - 2 / hz * pen_n * Bnz ;
+      Luz = Dx * Dx + Dz * Dz - tau * ( pen * ( 2 / hx  * 2 / hz ) * E0 + nu * 2 / hx * pen * E1x + nu * 2 / hz * pen * E1z ) - ...
+                               ( 2 / hz )^2 * pen_d * B0z - 2 / hx * pen_n * Bnx ;
    else
       omega = 2.0 / ( n - 1 ) / n;
       kappa = omega;
-      pen   = 1.0 / omega * ( 1.0 + ( 2 * kappa ) - ( 2 * sqrt( kappa^2 + kappa ) ) );
-      Lux = Dx * Dx + Dz * Dz - tau * pen * ( (E0 + E1x + E1z) + pen^2 * ( B0x + B0z ) );
-      Luz = Dx * Dx + Dz * Dz - tau * pen * ( (E0 + E1x + E1z) + pen^2 * ( B0x + B0z ) );
+      pen   = 1.0 / ( omega * nu ) * ( nu + ( 2 * kappa ) - ( 2 * sqrt( kappa^2 + nu * kappa ) ) );
+      pen_n = nu * dt / omega;
+      pen_d = nu * dt/ omega^2;
+      Lux = Dx * Dx + Dz * Dz - tau * ( pen * ( 2 / hx  * 2 / hz ) * E0 + nu * 2 / hx * pen * E1x + nu * 2 / hz * pen * E1z ) - ...
+                               ( 2 / hx )^2 * pen_d * B0x - ( 2 / hz )^2 * pen_d * B0z ;
+      Luz = Dx * Dx + Dz * Dz - tau * ( pen * ( 2 / hx  * 2 / hz ) * E0 + nu * 2 / hx * pen * E1x + nu * 2 / hz * pen * E1z ) - ...
+                               ( 2 / hz )^2 * pen_d * B0z - ( 2 / hx )^2 * pen_d * B0x ;
    end
 
    % Build the diffusion operator.
    if bc_diffusion == 'd'
       omega = 2.0 / ( n - 1 ) / n;
       kappa = omega;
-      pen   = 1.0 / omega * ( 1.0 + ( 2 * kappa ) - ( 2 * sqrt( kappa^2 + kappa ) ) );
-      Lrho = Dx * Dx + Dz * Dz - tau * pen * ( (E0 + E1x + E1z) + pen^2 * ( B0x + B0z ) );
+      pen   = 1.0 / ( omega * nu ) * ( nu + ( 2 * kappa ) - ( 2 * sqrt( kappa^2 + nu * kappa ) ) );
+      pen_n = nu * dt / omega;
+      pen_d = nu * dt / omega^2;
+      Lrho  = Dx * Dx + Dz * Dz - tau * ( pen * ( 2 / hx  * 2 / hz ) * E0 + nu * 2 / hx * pen * E1x + nu * 2 / hz * pen * E1z ) - ...
+                               ( 2 / hx )^2 * pen_d * B0x - ( 2 / hz )^2 * pen_d * B0z ;
    else
       omega = 2.0 / ( n - 1 ) / n;
       kappa = omega;
-      pen   = 1.0 / omega * ( 1.0 + ( 2 * kappa ) - ( 2 * sqrt( kappa^2 + kappa ) ) );
-      Lrho = Dx * Dx + Dz * Dz - tau * pen * ( (E0 + E1x + E1z) + pen^2 * ( Bnx + Bnz ) );
+      pen   = 1.0 / ( omega * nu ) * ( nu + ( 2 * kappa ) - ( 2 * sqrt( kappa^2 + nu * kappa ) ) );
+      pen_n = nu * dt / omega;
+      pen_d = nu * dt / omega^2;
+      Lrho  = Dx * Dx + Dz * Dz - tau * ( pen * ( 2 / hx  * 2 / hz ) * E0 + nu * 2 / hx * pen * E1x + nu * 2 / hz * pen * E1z ) - ...
+                               2 / hx * pen_n * Bnx - 2 / hz * pen_n * Bnz ;
    end
 
    % Build the divergence and gradient operators.
@@ -312,6 +333,11 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
             fprintf( [ 'norm(u) changed by  ', num2str( norm(  [iiux;iiuz] )  - norm(b) ), ' \n ' ]);
       end
 
+      % Set the boundary conditions for the viscous operators.
+     
+      iiux = iiux;
+      iiuz = iiuz;
+
       % Solve the viscous and diffusive equations.
       iiux  = ( speye( r, r ) / dt / nu - Lux )  \ ( iiux  / ( dt * nu ) );
       iiuz  = ( speye( r, r ) / dt / nu - Luz )  \ ( iiuz  / ( dt * nu ) );
@@ -335,7 +361,7 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
       t  = [ t; t(end) + dt ];
       fprintf( ['   New Time-Step: ', num2str(dt) '\n'] );
 
-      if dt < 1.0e-5
+      if dt < 1.0e-3
          fprintf( 'Simulation has gone unstable. Exiting.\n' );
          return;
       end

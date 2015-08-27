@@ -299,7 +299,7 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
       t  = [ t; t(end) + dt ];
       fprintf( ['   New Time-Step: ', num2str(dt) '\n'] );
 
-      if dt < 1.0e-5
+      if dt < 1.0e-3
          fprintf( 'Simulation has gone unstable. Exiting.\n' );
          return;
       end
