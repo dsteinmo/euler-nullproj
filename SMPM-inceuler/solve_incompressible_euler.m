@@ -35,7 +35,7 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
 
    % Build the operator matrices.
    r = n * n * mx * mz;
-   [Dx Dz E0 E1x E1z B0x B0z Bnx Bnz] = smpm_assemble_2D_cartesian( n, mx, mz, Lx, Lz );
+   [Dx Dz E0x E0z E1x E1z B0x B0z Bnx Bnz] = smpm_assemble_2D_cartesian( n, mx, mz, Lx, Lz );
    B1 = Bnx + Bnz;
 
    % Do some argument handling.
@@ -44,14 +44,32 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
    end
 
    % Get a penalty coefficient.
+   hx = Lx / mx;
+   hz = Lz / mx;
+
+   dt = max_dt;
+
+   % Build the Laplacian.
+   DG = Dx * Dx + Dz * Dz;
+
+   % Get a penalty coefficient.
 
    % Build the Poisson matrix and its null space.
    if strcmp( ptype, 'poisson' ) || strcmp( ptype, 'postproject' ) || strcmp( ptype, 'postnull' ) || strcmp( ptype, 'postnormal' )
+%      omega = 2.0 / ( n - 1 ) / n;
+%      kappa = omega;
+%      pen   = 1.0 / omega * ( 1.0 + ( 2 * kappa ) - ( 2 * sqrt( kappa^2 + kappa ) ) );
+%      EL = tau * pen * (E0 + E1x + E1z) + pen^2 * B1;
+%      L = Dx * Dx + Dz * Dz - tau * EL;
+%      [u0, junk, junk] = svds( L, 1, 0 );
+
       omega = 2.0 / ( n - 1 ) / n;
       kappa = omega;
-      pen   = 1.0 / omega * ( 1.0 + ( 2 * kappa ) - ( 2 * sqrt( kappa^2 + kappa ) ) );
-      EL = tau * pen * (E0 + E1x + E1z) + pen^2 * B1;
-      L = Dx * Dx + Dz * Dz - tau * EL;
+      pen    = 1.0 / omega * ( 1.0 + ( 2 * kappa ) - ( 2 * sqrt( kappa^2 + kappa ) ) );
+      pen_bc = 1.0 / omega^2;
+      EL = tau * pen * ( 2 / hx ) * E0x + tau * pen * ( 2 / hz ) * E0z + ( tau * pen * 2 / hx ) * E1x + ( tau * pen * 2 / hz ) * E1z + ...
+                 pen_bc * 2 / hx * Bnx + pen_bc * 2 / hz * Bnz;
+      L = DG - EL;
       [u0, junk, junk] = svds( L, 1, 0 );
    end
 
@@ -76,7 +94,7 @@ function [ux uz rho t] = solve_incompressible_euler( n, mx, mz, x, z, ux0, uz0, 
    N = compute_divergence_nullspace( D, n, mx, mz );
 
    % Build the vector C0 continuity operator.
-   E_C0 = [ (E0 + E1x + E1z + B0x) zeros(r,r); zeros(r,r) (E0 + E1x + E1z + B0z) ];
+   E_C0 = [ (E0x + E0z + E1x + E1z + B0x) zeros(r,r); zeros(r,r) (E0x + E0z + E1x + E1z + B0z) ];
 
    % Solve for a truncated SVD if asked to do so.
    if strcmp( ptype, 'nullspace-direct' ) || strcmp( ptype, 'postnull' )
