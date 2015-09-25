@@ -21,7 +21,7 @@
 
    % Set the types of simulations to run.
    ptypes = { 'poisson', 'postproject', 'postnormal', 'postnull' };
-   fname  = { 'djl_poisson', 'djl_postproject', 'djl_postnormal', 'djl_postnull' };
+   fname  = { 'djl_poisson_hires', 'djl_postproject_hires', 'djl_postnormal_hires', 'djl_postnull_hires' };
 
    % Set the regularization/penalty coefficient.
    tau(1) = 1.0e4;
