@@ -1,6 +1,7 @@
 function varargout = smpm_assemble_2D_cartesian( n, mx, mz, Lx, Lz );
-% [Dx, Dz, E0, E1x, E1z, B0x, B0z, B1       ] = smpm_assemble_2D_cartesian( n, mx, mz, Lx, Lz )
-% [Dx, Dz, E0, E1x, E1z, B0x, B0z, Bnx, Bnz ] = smpm_assemble_2D_cartesian( n, mx, mz, Lx, Lz )
+% [Dx, Dz, E0,  E1x, E1z, B0x, B0z, B1            ] = smpm_assemble_2D_cartesian( n, mx, mz, Lx, Lz )
+% [Dx, Dz, E0,  E1x, E1z, B0x, B0z, Bnx, Bnz      ] = smpm_assemble_2D_cartesian( n, mx, mz, Lx, Lz )
+% [Dx, Dz, E0x, E0z, E1x, E1z, B0x, B0z, Bnx, Bnz ] = smpm_assemble_2D_cartesian( n, mx, mz, Lx, Lz )
 %
 %  Builds the domain decomposition of the spectral multidomain penalty method
 %  discretization of the Poisson equation on a uniform cartesian grid.
@@ -139,7 +140,9 @@ E    = kron( speye( mx * n ), ...
              speye( mz * n ) );
 
 % XXX: check the validity of the abs() calls in the B0 condition.
-E0   = kron( speye( mx * n ), sparse( C0z ) ) + kron( sparse( C0x ), speye( mz * n ) );
+E0x  = kron( sparse( C0x ), speye( mz * n ) );
+E0z  = kron( speye( mx * n ), sparse( C0z ) );
+E0   = E0x + E0z;
 E1x  = kron( sparse( C1x * Dx ), speye( mz * n ) ); %
 E1z  = kron( speye( mx * n ), sparse( C1z * Dz ) ); % XXX: c.f. comment below about swapping these.
 B1   = kron( speye( mx * n ), sparse( B1z * Dz ) ) + kron( sparse( B1x * Dx ), speye( mz * n ) );
@@ -160,5 +163,8 @@ if nargout == 9
    varargout = { D2x, D2z, E0, E1x, E1z, B0x, B0z, Bnx, Bnz };
 end
 
+if nargout == 10
+   varargout = { D2x, D2z, E0x, E0z, E1x, E1z, B0x, B0z, Bnx, Bnz };
+end
 
 end
