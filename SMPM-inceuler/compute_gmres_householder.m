@@ -11,7 +11,10 @@
 %
 % [x err m] = compute_gmres_householder(A,b,x0,TOL,MAXIT,PRE);
 %
-% err is the history of the error over m iterations.
+% PRE is either a (right) preconditioning matrix, or a cell array of
+% additive right preconditioning matrices.
+%
+% err is the history of the error over m iterations, and x is the solution.
 %
 % 27 Oct 2013
 % Sumedh Joshi
@@ -85,10 +88,25 @@ function [x err_array mout] = compute_gmres_householder(varargin)
         %
         % 1. Compute r0 and find the appropriate Householder reflector.
         if isa(A,'function_handle')
-            inputs.x = PRE\x0;
+            if iscell( PRE )
+               inputs.x = 0;
+               for iipre = 1:length(PRE)
+                  inputs.x = inputs.x + PRE{iipre} \ x0;
+               end
+            else
+               inputs.x = PRE\x0;
+            end
             r0 = b - A(inputs);
         else
-            r0 = b - A*(PRE\x0);
+            if iscell( PRE )
+               applypre = 0;
+               for iipre = 1:length(PRE)
+                  applypre = applypre + PRE{iipre} \ x0;
+               end
+            else
+               applypre = PRE\x0;
+            end
+            r0 = b - A*(applypre);
         end
         P(:,1) = get_householder(r0,1);
         w      = apply_householder(r0,P(:,1));
@@ -111,11 +129,18 @@ function [x err_array mout] = compute_gmres_householder(varargin)
             for jj = m:-1:1
                 v = apply_householder(v,P(:,jj));
             end
+            applypre = 0.0;
+            if iscell(PRE)
+               for iipre = 1:length(PRE)
+                  applypre = applypre + PRE{iipre} \ v;
+               end
+            else
+               applypre = PRE \ v;
             if isa(A,'function_handle')
-                inputs.x = PRE\v;
+                inputs.x = applypre;
                 v = A(inputs);
             else
-                v = A*(PRE\v);
+                v = A*(applypre);
             end
             for jj = 1:m
                 v = apply_householder(v,P(:,jj));
@@ -230,7 +255,14 @@ function [x err_array mout] = compute_gmres_householder(varargin)
                     % set m = 1 and start over.
                     if abs(w(m+1)) < TOL * NORM_RHS
                         converged = 1;
-                        x = PRE\x0;
+                        if iscell( PRE )
+                           x = 0;
+                           for iipre = 1:length(PRE)
+                              x = x + PRE{iipre} \ x0;
+                           end
+                        else
+                           x = PRE\x0;
+                        end
                         mout = m;
                         err = w(m+1);
                         err = err_array;
