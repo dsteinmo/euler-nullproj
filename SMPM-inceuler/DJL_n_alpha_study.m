@@ -29,6 +29,8 @@
    tau    = 10^4;
    alpha1 = 10.^[1:5];
    alpha2 = 10.^[1:5];
+   alpha1 = 1;
+   alpha2 = 1;
 
    % Set the values of n we want to study.
    N = [4 6 8 10 12];
@@ -43,10 +45,6 @@
    fprintf(['Assembling operator matrices.\n']);
    [Dx Dz E0 E1x E1z B0x B0z B1] = smpm_assemble_2D_cartesian( n, mx, mz, Lx, Lz );
 
-   % Set the bounds to be [0,Lz].
-   zz = zz + Lz;
-
-   % Get a penalty coefficient.
 
 
    % Loop over values of n.
@@ -58,6 +56,12 @@
       % Build a cartesian grid.
       fprintf(['Building the grid.\n']);
       [x, z] = smpm_build_cartesian_mesh( n, mx, mz, [0 Lx], [0 Lz] );
+
+      % Load the data.
+      load samplewave;
+
+      % Set the bounds to be [0,Lz].
+      zz = zz + Lz;
 
       % Interpolate the DJL data onto the element grid we just built.
       ux0  = interp2( xx, zz, u, x, z,   'spline', 0.0 );
@@ -121,12 +125,21 @@
                   diff_rho = rho( :, ndx + 1:end ) - rhoi( :, 1:end - ndx );
 
                   % Compare the solution at the final time to the initial time.
-                  err_rel_u(ii,jj,kk)   = norm( diff_ux ) / norm( ux0(:, 1:end - ndx ) );
-                  err_rel_w(ii,jj,kk)   = norm( diff_uz ) / norm( uz0(:, 1:end - ndx ) );
-                  err_rel_rho(ii,jj,kk) = norm ( diff_rho ) / norm( rhoi(:, 1:end - ndx ) );;
-                  err_u(ii,jj,kk)   = norm( diff_ux );
-                  err_w(ii,jj,kk)   = norm( diff_uz );
-                  err_rho(ii,jj,kk) = norm( diff_rho );
+                  if t(end) >= t_final
+                     err_rel_u(ii,jj,kk)   = norm( diff_ux ) / norm( ux0(:, 1:end - ndx ) );
+                     err_rel_w(ii,jj,kk)   = norm( diff_uz ) / norm( uz0(:, 1:end - ndx ) );
+                     err_rel_rho(ii,jj,kk) = norm ( diff_rho ) / norm( rhoi(:, 1:end - ndx ) );;
+                     err_u(ii,jj,kk)   = norm( diff_ux );
+                     err_w(ii,jj,kk)   = norm( diff_uz );
+                     err_rho(ii,jj,kk) = norm( diff_rho );
+                  else
+                     err_rel_u(ii,jj,kk)   = Inf;
+                     err_rel_w(ii,jj,kk)   = Inf;
+                     err_rel_rho(ii,jj,kk) = Inf;
+                     err_u(ii,jj,kk)       = Inf;
+                     err_w(ii,jj,kk)       = Inf;
+                     err_rho(ii,jj,kk)     = Inf;
+                  end
 
                   keyboard;
 
