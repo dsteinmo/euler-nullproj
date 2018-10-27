@@ -1,6 +1,5 @@
 function [OP] = build_udotn_misfit()
 
-
 Globals2D;
 
 % build local face matrices
@@ -66,12 +65,14 @@ for k1=1:K
         OP12        = OP12 + ( lny*ident );
       otherwise
         %nada
+        OP11        = OP11 + ( lnx*ident );
+        OP12        = OP12 + ( lny*ident );
     end 
   end      
   OP(entries(:), :)   = [rows1(:), cols1(:), OP11(:)];
   entries = entries + Np*Np;
 
-  OP(entries(:), :)   = [rows1(:)+Np*K, cols1(:)+Np*K, OP12(:)];
+  OP(entries(:), :)   = [rows1(:), cols1(:)+Np*K, OP12(:)];
   entries = entries + Np*Np;
 end  
 

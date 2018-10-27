@@ -15,22 +15,45 @@ OP = [Lap ones(Np*K,1);
 
 % Build misfit operators.
 C0 = build_C0_misfit();
-B0 = build_udotn_misfit();
+CN = build_udotn_misfit();
 C1x = build_c1x_misfit();
 C1y = build_c1y_misfit();
 
+Div = build_div_misfit();
+
 % Build C0 continuity misfit for velocity field.
-C0_vel = [C0+C1y C1x; C1y C0+C1x];
+% C0_vel = [C0+C1y C1x; C1y C0+C1x];
+myzer = 0*speye(Np*K,Np*K);;
+C0_vel = [CN; 
+          CN];
+
+Div_vel = [Div;
+           Div];
 
 % Combine continuity and boundary conditions into single operator for velocity field.
-E = C0_vel + B0;
+E = C0_vel; %+ B0;
 
 % Build basis for the nullspace of the divergence operator.
 Nd = build_div_nullspace();
 
 % Form normal equation.
 tau = 0;
-T = (Nd'*Nd) + tau * ( E * Nd )' * E * Nd;
+%T = (Nd'*Nd) + tau * ( E * Nd )' * E * Nd;
+
+
+H = abs(max(y(:))-min(y(:)));
+
+% compute initial timestep -- time-stepping is not adaptive (yet).
+CFL=0.9;
+dt=CFL*EulerDT2D(Qn,g,H);
+
+% speed max should depend on time, more generally.
+speedmax = max(sqrt(Qn(:,:,2)(:).^2+Qn(:,:,3)(:).^2));
+tau_div = 1.0*2*speedmax*sqrt(min(abs(J(:))))*dt/(N+1)
+tau_c = 1.0*speedmax*dt
+fflush(stdout)
+
+T = speye(2*Np*K,2*Np*K) + tau_div*Div_vel +tau_c*C0_vel;
 
 %Pre-factorize normal operator
 [ll,uu,pp,qq] = lu(T);
@@ -38,13 +61,6 @@ T = (Nd'*Nd) + tau * ( E * Nd )' * E * Nd;
 % Initialize filter - be careful not to 'over filter'
 Filt = Filter2Dquad(N,0.9*N,4);%order 4 runs
 
-FILTER_TRACER_RHS = false; %seem to get away with 'false'
-
-H = abs(max(y(:))-min(y(:)));
-
-% compute initial timestep -- time-stepping is not adaptive (yet).
-CFL=0.9;
-dt=CFL*EulerDT2D(Qn,g,H);
 
 tstep=1;
 time(tstep)=0;
@@ -130,17 +146,14 @@ while (time(tstep)<FinalTime)
    uvec = [u(:); v(:)];
   
    % Set up the right-hand-side for the normal equation.
-   RHS = Nd' * [ uvec ];
+   RHS =  uvec;
 
    % Solve for new velocity with LUPQ factors
-   lambda=qq*(uu\(ll\(pp*RHS)));
-
-   % Construct the updated velocity.
-   unew = Nd * lambda;
+   unew=qq*(uu\(ll\(pp*RHS)));
 
    %Comment in or out depending on whether you want to use null-space projection.
-   %u = reshape(unew(1:end/2),Np,K);
-   %v = reshape(unew(end/2+1:end),Np,K);
+   u = reshape(unew(1:end/2),Np,K);
+   v = reshape(unew(end/2+1:end),Np,K);
 
 
    %u = Filt*u;
