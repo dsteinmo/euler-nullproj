@@ -80,9 +80,9 @@ for k1=1:K
 	OP11        = OP11 + 0.5*( gtau*mmE - mmE*Dn1 - Dn1'*mmE );
 
 	OP12 = zeros(Np);
-	OP12(:,Fm2) =             - 0.5*( gtau*mmE(:,Fm1) );  %corresponds to line 71, term 1
-	OP12(Fm1,:) = OP12(Fm1,:) - 0.5*(      mmE(Fm1,Fm1)*Dn2(Fm2,:) );  %corresponds to line 71, term 2
-	OP12(:,Fm2) = OP12(:,Fm2) - 0.5*(-Dn1'*mmE(:, Fm1) );              %corresponds to line 71, term 3
+	OP12(:,Fm2) =             - 0.5*( gtau*mmE(:,Fm1) );  %corresponds to line 80, term 1
+	OP12(Fm1,:) = OP12(Fm1,:) - 0.5*(      mmE(Fm1,Fm1)*Dn2(Fm2,:) );  %corresponds to line 80, term 2
+	OP12(:,Fm2) = OP12(:,Fm2) - 0.5*(-Dn1'*mmE(:, Fm1) );              %corresponds to line 80, term 3
     
 	OP(entries(:), :) = [rows1(:), cols2(:), OP12(:)];
 

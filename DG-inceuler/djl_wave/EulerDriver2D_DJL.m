@@ -1,10 +1,10 @@
 
 clear;
 close all;
-cd ../../
-setNUDGpaths;
-cd DG-inceuler/djl_wave
-addpath('../../bandLimFourierInterp/')
+%cd ../../
+%setNUDGpaths;
+%cd DG-inceuler/djl_wave
+%addpath('../../bandLimFourierInterp/')
 
 % Driver script for solving the 2D Euler equations
 Globals2D;
@@ -225,5 +225,5 @@ Q(:,:,4) = 0*rho;
 
 close all;
 FinalTime = 1000; %48 = roughly tank traversal time
-[Q] = Euler2Dpressure(Q, FinalTime, BCSolution,g); 
+[Q] = Euler2Dextrap(Q, FinalTime, BCSolution,g); 
 
