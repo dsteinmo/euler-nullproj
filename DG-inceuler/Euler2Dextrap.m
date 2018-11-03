@@ -42,24 +42,34 @@ tau = 0;
 
 
 H = abs(max(y(:))-min(y(:)));
-
+L = abs(max(x(:))-min(x(:)));
 % compute initial timestep -- time-stepping is not adaptive (yet).
 CFL=0.9;
 dt=CFL*EulerDT2D(Qn,g,H);
 
 asp = H/L;
 % speed max should depend on time, more generally.
-speedmax = max(sqrt(Qn(:,:,2)(:).^2+Qn(:,:,3)(:).^2));
-tau_div = 1.0*2*speedmax*sqrt(min(abs(J(:))))*dt/(N+1);
-tau_c = 1.0*speedmax*dt;
+spd = sqrt(Qn(:,:,2).^2+Qn(:,:,3).^2);
 
- Div_vel_scaled = tau_div*[Div;
-                          asp*Div];
+tau_div = 1.0*2*spd(:).*sqrt(abs(J(:)))*dt/(N+1);
+tau_c = 1.0*spd(:)*dt;
+
+tau_div_mat = spdiags(tau_div,[0],Np*K,Np*K);
+tau_c_mat = spdiags(tau_c,[0],Np*K,Np*K);
+
+%Div_vel_scaled = tau_div*[Div;
+%                          asp*Div];
+
+Div_vel_scaled = [tau_div_mat*Div;
+              asp*tau_div_mat*Div];
+
+%C0_vel_scaled = tau_c*[CN;
+%                        asp*CN];
+C0_vel_scaled = [tau_c_mat*CN;
+             asp*tau_c_mat*CN];
  
- C0_vel_scaled = tau_c*[CN;
-                        asp*CN];
- 
-T = speye(2*Np*K,2*Np*K) + Div_vel_scaled +C0_vel_scaled;
+
+T = speye(2*Np*K,2*Np*K) + Div_vel_scaled + C0_vel_scaled;
 
 %Pre-factorize normal operator
 [ll,uu,pp,qq] = lu(T);
@@ -154,8 +164,18 @@ while (time(tstep)<FinalTime)
    % Set up the right-hand-side for the normal equation.
    RHS =  uvec;
 
-   % Solve for new velocity with LUPQ factors
-   unew=qq*(uu\(ll\(pp*RHS)));
+
+   spd = sqrt(u(:).^2+v(:).^2);
+
+   tau_div = 1.0*2*spd(:).*sqrt(abs(J(:)))*dt/(N+1);
+   tau_c = 1.0*spd(:)*dt;
+   % tau_div = ...
+   % tau_c = ...
+   [unew,FLAG,RELRES,ITER,RESVEC] = gmres(@(uv)PenaltyStabilizationOp(uv, Div, CN, tau_div, tau_c, asp, Np, K), uvec, 30, 1e-10, 300, [], [], uvec);
+   disp(['gmres converged after ' num2str(ITER) ' iterations with relative residual ' num2str(RELRES) '.']);
+   fflush(stdout);
+  % Solve for new velocity with LUPQ factors
+   %unew=qq*(uu\(ll\(pp*RHS)));
 
    %Comment in or out depending on whether you want to use null-space projection.
    u = reshape(unew(1:end/2),Np,K);
@@ -195,6 +215,7 @@ while (time(tstep)<FinalTime)
     xlabel('x');
     ylabel('z');
     %caxis([1 1.003]);
+    colormap(darkjet);
     colorbar
     
     
@@ -202,24 +223,32 @@ while (time(tstep)<FinalTime)
     pf2dquad(N,x,y,px);
     title('px');
     axis tight;
+    colormap(darkjet);
     colorbar;
     
     subplot(2,3,3);
     pf2dquad(N,x,y,py);
     title('pz');
     axis tight;
+    colormap(darkjet);
     colorbar;
     
     subplot(2,3,4);
     %pf2d(N,x,y,LIFT*((u(vmapM)-u(vmapP))./(u(vmapM)+u(vmapP)))); colorbar;
-    pf2dquad(N,x,y,Qnp1(:,:,2)); colorbar;
+    pf2dquad(N,x,y,Qnp1(:,:,2)); 
+    colormap(darkjet);
+    colorbar;
     title('u');
     subplot(2,3,5);
     %pf2d(N,x,y,LIFT*((v(vmapM)-v(vmapP))./(v(vmapM)+v(vmapP)))); colorbar;
-    pf2dquad(N,x,y,Qnp1(:,:,3)); colorbar;
+    pf2dquad(N,x,y,Qnp1(:,:,3)); 
+    colormap(darkjet);
+    colorbar;
     title('w');
     subplot(2,3,6);
-    pf2dquad(N,x,y,divu); colorbar;
+    pf2dquad(N,x,y,divu);
+    colormap(darkjet);
+    colorbar;
     title('div u');
     %subplot(2,3,6);
     %p_hyd = -g*Qnp1(:,:,1).*y; 
