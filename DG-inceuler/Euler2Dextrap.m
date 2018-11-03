@@ -47,13 +47,19 @@ H = abs(max(y(:))-min(y(:)));
 CFL=0.9;
 dt=CFL*EulerDT2D(Qn,g,H);
 
+asp = H/L;
 % speed max should depend on time, more generally.
 speedmax = max(sqrt(Qn(:,:,2)(:).^2+Qn(:,:,3)(:).^2));
-tau_div = 1.0*2*speedmax*sqrt(min(abs(J(:))))*dt/(N+1)
-tau_c = 1.0*speedmax*dt
-fflush(stdout)
+tau_div = 1.0*2*speedmax*sqrt(min(abs(J(:))))*dt/(N+1);
+tau_c = 1.0*speedmax*dt;
 
-T = speye(2*Np*K,2*Np*K) + tau_div*Div_vel +tau_c*C0_vel;
+ Div_vel_scaled = tau_div*[Div;
+                          asp*Div];
+ 
+ C0_vel_scaled = tau_c*[CN;
+                        asp*CN];
+ 
+T = speye(2*Np*K,2*Np*K) + Div_vel_scaled +C0_vel_scaled;
 
 %Pre-factorize normal operator
 [ll,uu,pp,qq] = lu(T);
